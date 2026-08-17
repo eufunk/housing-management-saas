@@ -165,6 +165,8 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
 - [x] `docs/authorization.md`
 - [x] `docs/multi-tenancy.md`
 - [x] `docs/development.md`
+- [x] `docs/project-journal.md` (zusätzlich, nicht in Abschnitt 15 explizit gefordert):
+      Projektbegleitende Doku mit Aufgabenstellung + Herangehensweise, wird laufend fortgeschrieben
 
 ## 14. Git-Hygiene (Abschnitt 16)
 - [x] `.gitignore` durch die vom offiziellen Starter-Kit mitgelieferte Version ersetzt

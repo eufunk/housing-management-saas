@@ -40,6 +40,7 @@ Ohne Docker sowie weitere Befehle (Tests, Code-Style, ...): siehe
 | [docs/authorization.md](docs/authorization.md)                   | Rollen, Policies, Gates                                    |
 | [docs/multi-tenancy.md](docs/multi-tenancy.md)                     | Mandantenmodell und Isolationsstrategie                       |
 | [docs/development.md](docs/development.md)                           | Setup, Docker-Befehle, QA-Checks                                 |
+| [docs/project-journal.md](docs/project-journal.md)                     | Aufgabenstellung und Herangehensweise (Projektdoku)               |
 
 ## Rollen
 
