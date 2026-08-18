@@ -36,7 +36,9 @@ const recentActivity = [
     { description: 'Neue Immobilie "Gartenstraße 12" angelegt', time: 'vor 2 Tagen' },
 ];
 
-const financialTone = computed(() => (tone: 'positive' | 'negative') => (tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'));
+const financialTone = computed(
+    () => (tone: 'positive' | 'negative') => (tone === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'),
+);
 </script>
 
 <template>
