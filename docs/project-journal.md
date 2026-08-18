@@ -296,3 +296,37 @@ Abschnitt 12) einen Bug maskiert hat, den ein "echter" Linux-CI-Runner zurecht a
 fehlt, lohnt es sich, gezielt danach zu fragen, statt auf Verdacht Konfigurationen zu ändern —
 das eigentliche Symptom (der volle Pest-Fehlertext) war um Größenordnungen aussagekräftiger als
 die generische "exit code 1"-Annotation.
+
+### 14. "Streamlit kostet mich nichts" — Deployment-Kurskorrektur
+
+Nach der ersten Laravel-Cloud-Vorbereitung (Abschnitt 13) fragte der Nutzer, bevor er als
+Besucher irgendetwas anklickte, explizit nach: Entstehen Kosten, wenn viele Besucher:innen die
+Demo nutzen? Statt aus dem Gedächtnis zu beruhigen, wurden die tatsächlichen Laravel-Cloud-Preise
+nachgeschlagen (Starter-Tarif: 5 $/Monat plus Nutzung, Kreditkarte auch im günstigsten Einstieg
+nötig) und ehrlich mit Spending-Limit als Absicherung erklärt. Die Antwort des Nutzers war
+eindeutig: "Ich möchte es gar nicht nutzen. Streamlit kostet mich nichts." — ein klarer
+Ausschluss eines kostenpflichtigen Wegs zugunsten eines echten Gratis-Angebots, kein Feilschen um
+Details.
+
+Daraufhin wurde recherchiert, was für Laravel-Apps dem tatsächlich dauerhaft kostenlosen
+Streamlit-Community-Cloud-Modell am nächsten kommt. Render bot sich an (Web-Service ganz ohne
+Kreditkarte), mit einem wichtigen Vorbehalt: Renders eigene kostenlose PostgreSQL-Datenbank läuft
+nach 30 Tagen ab und wird dann gelöscht — kein Dauerzustand. Um trotzdem "wirklich kostenlos,
+dauerhaft" zu erreichen, wurde Neon (dauerhaft kostenloses PostgreSQL) als separater
+Datenbank-Anbieter kombiniert, statt Renders eigene Datenbank zu nutzen — ein bewusster
+Kompromiss zwischen Einfachheit (ein Anbieter) und tatsächlicher Dauerhaftigkeit (zwei Anbieter).
+
+Technisch stellte sich dabei heraus, dass Render — anders als zunächst in einer Quelle behauptet
+— **keinen** nativen PHP-Buildpack hat (gezielt gegengecheckt, da diese Behauptung einer zweiten
+Quelle widersprach). Die robuste, verifizierbar korrekte Lösung ist daher ein eigenes,
+mehrstufiges Docker-Image (`docker/render/Dockerfile`): eine Node-Stufe baut die Frontend-Assets,
+eine PHP/Nginx-Stufe bündelt beides in einem einzigen Container, wie es Renders
+Free-Tier-Web-Service (ein Prozess, ein Port) erfordert. Da auf der Entwicklungsmaschine kein
+funktionierendes Docker läuft (siehe Abschnitt 12), konnte dieses Image nicht gegen einen echten
+Render-Account gebaut/getestet werden — diese Einschränkung wurde explizit in
+`docs/deployment.md` benannt, statt stillschweigend als "sollte funktionieren" auszugeben.
+
+Auf Wunsch des Nutzers wurde die Dokumentation zugunsten von README.md schlank gehalten: Statt
+Details dort zu duplizieren, verweist README.md nur noch mit einem einzeiligen Infofeld auf
+`docs/deployment.md`, wo der kostenlose Render+Neon-Weg jetzt vor Laravel Cloud steht (das als
+kostenpflichtige, komfortablere Alternative erhalten bleibt, nicht gelöscht wurde).

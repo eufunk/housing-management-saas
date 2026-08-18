@@ -232,6 +232,39 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
       kompletter Demo-Login-Flow zusätzlich end-to-end per curl gegen den laufenden Dev-Server
       getestet (Startseite → Demo-Login → authentifiziertes Dashboard)
 
+## 17. CI-Fixes und kostenlose Deployment-Alternative (auf Nutzeranfrage)
+- [x] Zwei aufeinanderfolgende CI-Fehlschläge nach Push behoben (GitHub Actions "tests"-Workflow):
+      1. `.github/workflows/tests.yml` rief `./vendor/bin/phpunit` direkt auf — verweigert seit
+         Pest installiert ist ("Please run [./vendor/bin/pest] instead."). Fix: auf `pest`
+         umgestellt.
+      2. `WelcomeTest > guests see the public landing page` scheiterte mit "Inertia page
+         component file [Welcome] does not exist." — `inertia-laravel` sucht Testkomponenten
+         standardmäßig unter `resources/js/Pages` (Großbuchstabe), dieses Projekt nutzt bewusst
+         `pages/` (Kleinbuchstabe). Auf dem Windows/WSL-Mount (case-insensitiv) unsichtbar, auf
+         GitHub's case-sensitivem Linux-Runner zu Recht aufgedeckt. Fix: `config/inertia.php`
+         überschreibt `page_paths`/`testing.page_paths` (beide Top-Level-Keys nötig, da
+         `mergeConfigFrom()` nur flach mergt). GitHub-Job-Logs waren über `gh`-CLI/API nicht
+         einsehbar (Repo-Admin-Rechte nötig) — Nutzer hat den entscheidenden Log-Ausschnitt
+         manuell kopiert, was die Ursache erst auffindbar machte.
+- [x] Kostenpflichtigkeit von Laravel Cloud (auch im Pay-as-you-go-Einstieg ist ein Zahlungsmittel
+      nötig) war für den Nutzer ein Ausschlusskriterium ("Streamlit kostet mich nichts") — Preise
+      recherchiert statt geschätzt, dann auf **Render (App, kostenlos, kein Zahlungsmittel) + Neon
+      (PostgreSQL, dauerhaft kostenlos)** als empfohlenen Weg umgestellt; Laravel Cloud bleibt als
+      kostenpflichtige Alternative dokumentiert (inkl. Hinweis auf Spending Limits als Schutz vor
+      Kostenexplosion bei viralem Traffic)
+- [x] Neues, eigenständiges Docker-Image für Render gebaut (`docker/render/Dockerfile`,
+      `nginx.conf`, `start.sh`) — Render hat keinen nativen PHP-Buildpack (recherchiert, nicht
+      angenommen), daher Multi-Stage-Build: Node-Stage baut Frontend-Assets, PHP/Nginx-Stage
+      bündelt beides in einem Container (Render-Free-Tier erlaubt nur einen Prozess/Port pro
+      Service) — bewusst getrennt von `docker/php/Dockerfile` (FPM-only, für docker-compose mit
+      separatem Nginx-Container). **Nicht getestet** gegen einen echten Render-Account (kein
+      funktionierendes Docker auf der Entwicklungsmaschine, siehe Abschnitt 12) — als bekannte
+      Einschränkung in `docs/deployment.md` vermerkt
+- [x] `docs/deployment.md` umstrukturiert: kostenloser Render+Neon-Weg jetzt zuerst/empfohlen,
+      Laravel Cloud als kostenpflichtige Alternative danach; README auf Wunsch des Nutzers auf ein
+      einzeiliges Infofeld mit Verweis auf die MD-Datei reduziert (statt Details im README zu
+      duplizieren)
+
 ---
 
 ## Offene Punkte (bewusst nicht Teil dieser Grundstruktur)

@@ -216,6 +216,23 @@ Eine spezielle, schlichte URL (hier: `/up`), die ein Hosting-Anbieter regelmäß
 prüfen, ob die Anwendung noch läuft und antwortet — nicht für Menschen gedacht, sondern für
 automatisierte Überwachung.
 
+**Render**
+Ein PaaS-Anbieter mit einer echten kostenlosen Stufe (kein Zahlungsmittel nötig) für Web-Dienste
+— genutzt, um diese App ohne Kosten öffentlich bereitzustellen (siehe
+[deployment.md](deployment.md)). "Schläft" nach Inaktivität ein, um Ressourcen zu sparen; die
+erste Anfrage danach dauert dadurch etwas länger.
+
+**Neon**
+Ein Anbieter für kostenlos gehostetes PostgreSQL mit dauerhaft kostenloser Stufe (im Unterschied
+zu Renders eigener PostgreSQL-Option, die nach 30 Tagen automatisch gelöscht wird). Wird in
+diesem Projekt als Datenbank für das kostenlose Render-Deployment genutzt.
+
+**Multi-Stage-Build (Docker)**
+Eine Docker-Technik, bei der ein Dockerfile mehrere aufeinanderfolgende "Stufen" (Stages)
+definiert — z. B. eine Stufe, die mit Node.js die Frontend-Assets baut, gefolgt von einer
+zweiten Stufe, die nur die fertigen Build-Ergebnisse übernimmt, ohne Node.js selbst im späteren,
+tatsächlich laufenden Container zu benötigen. Hält das finale Image schlank.
+
 ## Tools & Qualitätssicherung
 
 **Pest / PHPUnit**
