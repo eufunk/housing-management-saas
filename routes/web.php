@@ -3,9 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+// PropertyManager is an internal B2B tool, not a public product with a
+// marketing landing page — '/' simply forwards to the login screen (which
+// itself redirects an already-authenticated user onward to the dashboard).
+Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
