@@ -187,7 +187,9 @@ abzulegen.
 **Docker / Docker Compose**
 Docker verpackt eine Anwendung mitsamt allen Abhängigkeiten in einen isolierten **Container**,
 der auf jedem Rechner gleich läuft. Docker Compose startet mehrere zusammengehörige Container
-(hier: PHP, Nginx, PostgreSQL, Redis, Node) mit einem einzigen Befehl.
+mit einem einzigen Befehl. In diesem Projekt für die lokale Entwicklung nicht nutzbar (siehe
+WSL2 unten) und deshalb entfernt — ein einzelnes Docker-Image (`docker/render/Dockerfile`)
+existiert weiterhin, aber nur für die öffentliche Bereitstellung auf Render.
 
 **WSL2 (Windows Subsystem for Linux, Version 2)**
 Eine echte, leichtgewichtige Linux-Umgebung, die direkt unter Windows läuft (technisch eine

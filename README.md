@@ -15,26 +15,31 @@ schrittweise implementiert.
 - **Backend**: PHP 8.4+, Laravel 12, Inertia.js
 - **Frontend**: Vue 3 (`<script setup lang="ts">`), TypeScript, Tailwind CSS, Vite
 - **Datenbank**: PostgreSQL 16
-- **Infrastruktur**: Redis, Docker Compose, S3-kompatibler Storage (vorbereitet)
+- **Infrastruktur**: Redis (vorbereitet), S3-kompatibler Storage (vorbereitet)
 - **Tests**: Pest 3
 
 ## Schnellstart
 
 ```bash
+composer install
+npm install
 cp .env.example .env
-docker compose up -d --build
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate
+php artisan key:generate
+# PostgreSQL-Zugangsdaten in .env anpassen
+php artisan migrate
+npm run build
+php artisan serve
 ```
 
-App: `http://localhost:8080` · Vite-Dev-Server: `http://localhost:5173`
+App: `http://localhost:8000` · für Hot-Reload während der Entwicklung: `npm run dev`
 
-**Windows-on-ARM64:** Docker Desktop kann dort aktuell nicht starten (bekanntes,
-plattformweites Problem). Alternative ohne Docker — PHP + PostgreSQL nativ in WSL2 — siehe
-[docs/development.md](docs/development.md#alternative-php--postgresql-nativ-in-wsl2-ohne-docker).
+**Unter Windows** empfohlen über WSL2 (native Windows-Installation ist ebenfalls möglich, aber
+ungetestet) — genaue Schritte siehe
+[docs/development.md](docs/development.md#php--postgresql-nativ-in-wsl2).
 
-Ohne Docker sowie weitere Befehle (Tests, Code-Style, ...): siehe
-[docs/development.md](docs/development.md).
+Kein Docker für die lokale Entwicklung nötig (Hintergrund dazu sowie weitere Befehle wie Tests,
+Code-Style, ...: siehe [docs/development.md](docs/development.md)). Ein Docker-Image existiert
+weiterhin ausschließlich für die öffentliche Bereitstellung auf Render, siehe unten.
 
 > **Öffentliche Bereitstellung / Gastzugang:** siehe [docs/deployment.md](docs/deployment.md).
 
@@ -47,11 +52,12 @@ Ohne Docker sowie weitere Befehle (Tests, Code-Style, ...): siehe
 | [docs/authentication.md](docs/authentication.md)               | Auth-Flow, Demo-/Gastzugang                              |
 | [docs/authorization.md](docs/authorization.md)                   | Rollen, Policies, Gates                                    |
 | [docs/multi-tenancy.md](docs/multi-tenancy.md)                     | Mandantenmodell und Isolationsstrategie                       |
-| [docs/development.md](docs/development.md)                           | Setup, Docker-Befehle, QA-Checks                                 |
+| [docs/development.md](docs/development.md)                           | Setup (WSL2), QA-Checks                                          |
 | [docs/deployment.md](docs/deployment.md)                                | Öffentliche Bereitstellung (Render/Neon, Laravel Cloud), Gastzugang    |
 | [docs/project-journal.md](docs/project-journal.md)                        | Aufgabenstellung und Herangehensweise (Projektdoku)                  |
 | [docs/glossar.md](docs/glossar.md)                                           | Glossar: Tech-Stack und Fachbegriffe erklärt                           |
 | [docs/roadmap.md](docs/roadmap.md)                                              | Produkt-Roadmap: priorisierte nächste Implementierungsschritte            |
+| [docs/testing/](docs/testing/)                                                     | Manuelle UI-Testfälle pro Modul (z. B. Immobilien)                          |
 
 ## Rollen
 

@@ -2,47 +2,14 @@
 
 ## Voraussetzungen
 
-- Docker Desktop (empfohlen — startet PHP, Nginx, PostgreSQL, Redis und Node in einem Schritt)
-- Alternativ lokal: PHP 8.4+, Composer, Node 22+, PostgreSQL 16, Redis
-- Auf **Windows-on-ARM64** funktioniert Docker Desktop derzeit nicht (siehe unten) — dort
-  PHP + PostgreSQL nativ in WSL2 installieren, siehe
-  [Alternative: PHP + PostgreSQL nativ in WSL2](#alternative-php--postgresql-nativ-in-wsl2-ohne-docker)
+- PHP 8.4+, Composer, Node 22+, PostgreSQL 16
+- **Kein Docker** für die lokale Entwicklung — siehe
+  [Warum kein Docker für die lokale Entwicklung?](#warum-kein-docker-für-die-lokale-entwicklung)
+  weiter unten. Die App läuft nativ, empfohlen über **WSL2** (Windows) bzw. direkt nativ
+  (macOS/Linux). Ein Docker-Image existiert weiterhin, aber nur für die öffentliche
+  Bereitstellung auf Render — siehe [deployment.md](deployment.md).
 
-## Setup mit Docker (empfohlen)
-
-```bash
-cp .env.example .env
-docker compose up -d --build
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate
-```
-
-Die Anwendung läuft danach unter `http://localhost:8080`, der Vite-Dev-Server (HMR) unter
-`http://localhost:5173`.
-
-Nützliche Befehle:
-
-```bash
-docker compose exec app php artisan tinker      # REPL
-docker compose exec app php artisan test        # Tests (Pest)
-docker compose exec app vendor/bin/pint         # Code-Style prüfen/fixen
-docker compose logs -f app                       # Logs
-docker compose down                                # Stoppen
-```
-
-Enthaltene Services (`docker-compose.yml`):
-
-| Service     | Zweck                                              |
-| ------------ | ---------------------------------------------------- |
-| `app`         | PHP-FPM (Laravel)                                      |
-| `nginx`         | Webserver, Port `8080` → `80`                            |
-| `queue`           | `php artisan queue:work`                                   |
-| `scheduler`         | `php artisan schedule:work`                                  |
-| `node`                | Vite-Dev-Server, Port `5173`                                    |
-| `pgsql`                 | PostgreSQL 16, Port `5432`                                        |
-| `redis`                   | Redis 7, Port `6379`                                                |
-
-## Setup ohne Docker
+## Setup
 
 ```bash
 composer install
@@ -55,6 +22,9 @@ npm run build   # oder: npm run dev (für HMR während der Entwicklung)
 php artisan serve
 ```
 
+Unter Windows: siehe [PHP + PostgreSQL nativ in WSL2](#php--postgresql-nativ-in-wsl2) für die
+genauen Schritte (einmalige WSL2-Einrichtung, PostgreSQL-Installation, Netzwerktücken).
+
 ## Qualitätssicherung vor jedem Commit
 
 ```bash
@@ -65,13 +35,12 @@ php vendor/bin/pint --test  # PHP Code-Style
 php artisan test              # Pest-Tests
 ```
 
-## Alternative: PHP + PostgreSQL nativ in WSL2 (ohne Docker)
+## PHP + PostgreSQL nativ in WSL2
 
-Auf **Windows-on-ARM64**-Rechnern kann Docker Desktop aktuell nicht starten (siehe Abschnitt
-unten) — die Backend-Toolchain läuft dort stattdessen komplett innerhalb von WSL2, nicht unter
-nativem Windows. Das ist kein Fallback zweiter Klasse, sondern eine vollwertige, getestete
-lokale Entwicklungsumgebung; sie eignet sich auch für alle, die lieber ganz ohne Docker
-arbeiten.
+Empfohlener Weg unter Windows: Die Backend-Toolchain läuft komplett innerhalb von WSL2, nicht
+unter nativem Windows. Das ist eine vollwertige, getestete lokale Entwicklungsumgebung — nicht
+Docker-basiert, siehe [Warum kein Docker für die lokale
+Entwicklung?](#warum-kein-docker-für-die-lokale-entwicklung) unten für den Hintergrund.
 
 **Einmalige Einrichtung** (PowerShell **als Administrator** für die ersten zwei Befehle):
 
@@ -103,8 +72,8 @@ composer install
 php artisan key:generate
 ```
 
-`.env` anpassen — anders als beim Docker-Setup (`DB_HOST=pgsql`) läuft hier alles in **derselben**
-WSL2-VM, daher reicht die normale Loopback-Adresse:
+`.env` anpassen — PHP und PostgreSQL laufen beide in **derselben** WSL2-VM, daher reicht die
+normale Loopback-Adresse:
 
 ```dotenv
 DB_HOST=127.0.0.1
@@ -151,10 +120,14 @@ spricht mit Postgres über den Linux-eigenen Netzwerkstack, ganz ohne die Window
 queren) — es trat nur während der Fehlersuche auf, als versucht wurde, natives Windows-PHP mit
 einer in WSL2 laufenden Datenbank zu verbinden.
 
-## Bekannter Zustand dieser Umgebung (Entwicklungsmaschine)
+## Warum kein Docker für die lokale Entwicklung?
 
-Der Windows-Rechner, auf dem dieses Grundgerüst erstellt wurde, läuft auf **ARM64**. Zwei
-unabhängige Blocker wurden hier gefunden und gelöst bzw. umgangen:
+Die ursprüngliche Aufgabenstellung sah ein Docker-Compose-Setup für die lokale Entwicklung vor
+(`docker-compose.yml`, `docker/php/Dockerfile`, `docker/nginx/`). Das wurde aus dem Projekt
+entfernt, da es auf der tatsächlichen Entwicklungsmaschine nie lauffähig war — Details dazu sind
+zusätzlich in `Aufgabenstellung/PropertyManager SaaS Grundstruktur.docx` (Abschnitt 21)
+festgehalten. Der Windows-Rechner, auf dem dieses Grundgerüst erstellt wurde, läuft auf
+**ARM64**. Zwei unabhängige Blocker wurden hier gefunden:
 
 1. **Eine Windows-Anwendungssteuerungsrichtlinie** blockiert die Ausführung mancher neu
    installierter nativer Binaries (u. a. PHP-SQLite-Erweiterungen, PostgreSQLs `initdb.exe`)
@@ -171,4 +144,8 @@ unabhängige Blocker wurden hier gefunden und gelöst bzw. umgangen:
 **Lösung:** PHP, Composer und PostgreSQL laufen komplett innerhalb von WSL2/Ubuntu (siehe oben)
 — das umgeht Blocker 1 (kein natives Windows-Binary beteiligt) und macht Blocker 2 gegenstandslos
 (kein Docker nötig). Damit laufen `php artisan migrate` und `php artisan test` vollständig
-erfolgreich (22 Migrationen, 36/36 Tests), inklusive eines echten End-to-End-Logins im Browser.
+erfolgreich, inklusive eines echten End-to-End-Logins im Browser.
+
+Ein Docker-Image existiert im Projekt trotzdem noch: `docker/render/Dockerfile` — das dient
+aber ausschließlich der öffentlichen Bereitstellung auf Render (siehe
+[deployment.md](deployment.md)), nicht der lokalen Entwicklung.

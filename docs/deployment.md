@@ -115,9 +115,8 @@ Rechnung eskaliert.
 
 Für Hintergrundjobs (`QUEUE_CONNECTION=database`/`redis`) und den Scheduler
 (`php artisan schedule:run`) lassen sich in Laravel Cloud zusätzliche, separat skalierbare
-"Compute"-Prozesse im Dashboard definieren (analog zu den `queue`-/`scheduler`-Services in
-`docker-compose.yml` für die lokale Entwicklung) — nicht Teil dieser Grundstruktur, da noch
-keine Jobs existieren, die eine Queue tatsächlich brauchen.
+"Compute"-Prozesse im Dashboard definieren — nicht Teil dieser Grundstruktur, da noch keine Jobs
+existieren, die eine Queue tatsächlich brauchen.
 
 ### Health-Check
 
@@ -134,6 +133,5 @@ Demo-Account wird beim ersten Klick automatisch angelegt.
 
 ## Andere Optionen (nicht vorbereitet, aber kompatibel)
 
-Das vorhandene `docker-compose.yml`/`docker/php/Dockerfile`-Setup (siehe
-[development.md](development.md)) funktioniert grundsätzlich auch als Basis für weitere
+Das vorhandene `docker/render/Dockerfile` funktioniert grundsätzlich auch als Basis für andere
 Docker-fähige PaaS-Anbieter wie **Railway** — falls weder Render noch Laravel Cloud passen.

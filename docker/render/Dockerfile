@@ -2,9 +2,10 @@
 # docs/deployment.md). Render has no native PHP buildpack, so this bundles
 # PHP-FPM and Nginx in one container via a multi-stage build: the frontend
 # assets are compiled in a throwaway Node stage, then copied into the final
-# PHP runtime image — kept separate from docker/php/Dockerfile (used by
-# docker-compose.yml), which is FPM-only and relies on a sibling Nginx
-# *container* instead of an in-container one.
+# PHP runtime image. This is the only Docker image left in the project —
+# the local Docker Compose setup was removed (Docker Desktop cannot start on
+# the development machine, see Aufgabenstellung, Abschnitt 21, and
+# docs/development.md); local development runs natively in WSL2 instead.
 
 FROM node:22-alpine AS frontend
 
@@ -36,7 +37,7 @@ RUN apk add --no-cache \
         opcache \
     && apk del $PHPIZE_DEPS
 
-COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/render/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY docker/render/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/render/start.sh /start.sh
 RUN chmod +x /start.sh

@@ -9,7 +9,8 @@
 | Datenbank  | PostgreSQL 16                                                     |
 | Cache/Queue| Redis (vorbereitet, Standard-Treiber vorerst `database`)          |
 | Storage    | Laravel Filesystem, S3-kompatibel vorbereitet (`config/filesystems.php`) |
-| Container  | Docker Compose (PHP-FPM, Nginx, PostgreSQL, Redis, Node)          |
+| Lokale Entwicklung | Nativ, empfohlen über WSL2 (kein Docker — siehe [development.md](development.md#warum-kein-docker-für-die-lokale-entwicklung)) |
+| Deployment | Docker-Image (`docker/render/Dockerfile`), nur für Render — siehe [deployment.md](deployment.md) |
 | Tests      | Pest 3 (PHPUnit-Unterbau)                                          |
 
 ## Warum `laravel/vue-starter-kit` statt nacktem `laravel/laravel`?
