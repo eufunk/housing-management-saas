@@ -403,3 +403,100 @@ Roadmap aufgenommen, sondern als eigene, spätere Grundsatzentscheidung benannt:
 strukturell ein anderes Feld als Mietverwaltung, kein Nebeneffekt, der einfach mitgebaut würde.
 Dieses Dokument wird als Arbeitsgrundlage für die Priorisierung kommender
 Implementierungsschritte verwendet, bis der Nutzer etwas anderes vorgibt.
+
+### 17. Phase 1 der Roadmap: erstes echtes CRUD (Properties)
+
+Auf Wunsch des Nutzers begann die Umsetzung von Phase 1 der Roadmap ("Stammdaten") mit
+`Properties`, exakt in der dort festgelegten Reihenfolge ("Properties zuerst, alles andere hängt
+daran"). Damit verlässt das Projekt zum ersten Mal die reine Grundstruktur-Phase — es ist das
+erste Modul mit echter Fachlogik statt eines `EmptyState`-Platzhalters.
+
+Vor der Backend-Arbeit mussten drei UI-Grundbausteine nachgebaut werden, die die Grundstruktur
+bewusst zurückgestellt hatte (siehe ToDo.md, Abschnitt 8): `Select` (vollständig auf Basis der
+radix-vue-Primitiven, gleiches Muster wie die bereits vorhandenen `Dialog`/`DropdownMenu`-
+Komponenten), `Table` (einfache gestylte `<table>`-Wrapper) und `Pagination` — Letztere bewusst
+*nicht* unter `components/ui/`, sondern direkt unter `components/`, da sie nicht auf einem
+generischen Design-System-Primitiv basiert, sondern konkret die Form von Laravels
+Standard-Paginator-Links (`{url, label, active}[]`) konsumiert.
+
+Backend-seitig kam eine grundlegende Lücke im Laravel-12-Starter-Kit zum Vorschein: die
+Basisklasse `App\Http\Controllers\Controller` bringt in Laravel 11+/12 standardmäßig weder den
+`AuthorizesRequests`-Trait noch `Illuminate\Routing\Controller` als Elternklasse mit (bewusste
+Verschlankung durch das Framework). `authorizeResource()` – die Standardmethode, um einen
+Resource-Controller automatisch an eine Policy zu koppeln – schlug deshalb zunächst mit "Call to
+undefined method ...::authorizeResource()" fehl, und nach dem naheliegenden ersten Fix (nur den
+Trait hinzufügen) mit einem zweiten, versteckteren Fehler: "Call to undefined method
+...::middleware()", weil `authorizeResource()` intern `$this->middleware()` aufruft – eine Methode,
+die erst durch `Illuminate\Routing\Controller` als Elternklasse bereitgestellt wird. Erst beide
+Änderungen zusammen (Trait *und* Elternklasse) lösten das Problem. Da alle weiteren Phase-1-Module
+(Buildings, Units, Owners, Tenants, Contractors) densel­ben `authorizeResource()`-Ansatz nutzen
+werden, wurde der Fix bewusst in der Basisklasse vorgenommen statt pro Controller wiederholt.
+
+Bei der Validierung von `owner_id` wurde die bereits während der Grundstruktur-Phase erkannte
+`Rule::exists()`-Falle konkret relevant: `Rule::exists()` fragt die Datenbank direkt ab und
+umgeht dabei Eloquents `OrganizationScope` vollständig. Ohne explizite Zusatzbedingung hätte ein
+Property Manager einer Organisation einem Objekt versehentlich (oder absichtlich) einen
+Eigentümer aus einer fremden Organisation zuweisen können. Fix:
+`Rule::exists('owners', 'id')->where('organization_id', $this->user()->current_organization_id)`
+— mit einem eigenen Feature-Test abgesichert, der genau dieses Cross-Tenant-Szenario prüft.
+
+Ein Testfall deckte zudem eine Designfrage auf, die vorher nur theoretisch bestand: Was passiert,
+wenn ein Property Manager versucht, ein Objekt einer fremden Organisation über die URL zu
+bearbeiten? Die ursprüngliche Testerwartung war `403 Forbidden` (Policy lehnt ab) — tatsächlich
+liefert die Anwendung `404 Not Found`, weil `OrganizationScope` das fremde Objekt beim
+Route-Model-Binding bereits vollständig unsichtbar macht, bevor die Policy überhaupt aufgerufen
+wird. Das ist stärkere Isolation als ein 403 (der würde bestätigen, dass der Datensatz *existiert*,
+nur eben nicht zugänglich ist) — der Test wurde entsprechend auf `assertNotFound()` korrigiert,
+nicht die Anwendung.
+
+Die `Select`-Komponente von radix-vue erzwingt typisiert einen einzigen generischen Wertetyp; ohne
+expliziten Typparameter fällt TypeScript auf `string` zurück. Statt gegen diese Typisierung
+anzukämpfen, wurde `owner_id` im Formular konsequent als String geführt (`SelectItem` bekommt
+`String(owner.id)` als Wert) und erst unmittelbar vor dem Absenden per `form.transform()` in
+`number | null` zurückgewandelt — ein pragmatischer, in shadcn-vue-Projekten üblicher Kompromiss.
+Ähnlich ergab sich bei den `route()`-Aufrufen mit ULID-Parameter (`properties.update`,
+`properties.destroy`, `properties.edit`), dass die projekteigene, handgeschriebene
+`route()`-Typdeklaration (`resources/js/types/ziggy.ts`) für nicht literal bekannte Routennamen
+keine nackten String-Argumente akzeptiert, sondern ein Array erwartet (`route(name, [param])`) —
+ebenfalls durch die Typprüfung aufgedeckt, nicht durch manuelles Nachschlagen.
+
+Ergebnis: vollständiges CRUD (Index mit Tabelle/Pagination/Lösch-Dialog, Create, Edit) inklusive
+sieben neuer Feature-Tests (Sichtbarkeit pro Organisation, Erstellen, Cross-Tenant-Owner-Ablehnung,
+Bearbeiten, Löschen, Rollen-Sperre für Tenant, Cross-Tenant-404) — alle 47 Tests (vorher 40)
+weiterhin grün, `vue-tsc`/`eslint`/`prettier`/Pint sauber. Vor der Weiterarbeit an
+Buildings/Units/Owners/Tenants/Contractors (laut Roadmap die nächsten Schritte innerhalb von
+Phase 1) wird beim Nutzer zurückgemeldet, wie vorher angekündigt.
+
+### 18. Lokales Docker-Setup entfernt
+
+Auf Nachfrage, wofür die Docker-Dateien im Projekt eigentlich da sind, erklärte sich, dass sie
+zwei unabhängige Zwecke bedienen: das lokale Docker-Compose-Setup (nie auf dieser Maschine
+lauffähig, siehe Abschnitt 10) und `docker/render/Dockerfile` für die Render-Bereitstellung
+(Abschnitt 17). Der Nutzer entschied daraufhin, den bereits früher formulierten Grundsatz
+("alles löschen, was nicht irgendwie genutzt wird") konsequent auch hier anzuwenden — *unabhängig*
+davon, dass die ursprüngliche Aufgabenstellung ein Docker-Setup explizit fordert. Da diese
+Entscheidung zwei unterschiedliche Konsequenzen hatte (das lokale Setup war schlicht nie nutzbar;
+das Render-Image ist zwar ungetestet, aber die einzige dokumentierte Grundlage für den
+kostenlosen Deployment-Weg), wurde vor der Löschung gezielt nachgefragt, ob beides oder nur das
+lokale Setup gemeint war — der Nutzer entschied sich für Letzteres.
+
+Entfernt: `docker-compose.yml`, `docker/php/Dockerfile`, `docker/nginx/default.conf`. Die Datei
+`docker/php/opcache.ini` wurde nicht gelöscht, sondern nach `docker/render/opcache.ini`
+verschoben, da sie auch vom verbleibenden Render-Image eingebunden wird (`COPY
+docker/php/opcache.ini ...` in `docker/render/Dockerfile`) — beim Löschen nicht übersehen, weil
+vorher gezielt nach allen Verwendern jeder zu löschenden Datei gesucht wurde, nicht nur nach dem
+naheliegenden lokalen Zweck. `.dockerignore` blieb aus demselben Grund erhalten: Docker wendet
+die `.dockerignore` im Build-Kontext-Wurzelverzeichnis unabhängig vom gewählten Dockerfile an,
+sie wird also weiterhin vom Render-Build gelesen.
+
+Alle Dokuverweise auf das entfernte Setup wurden überarbeitet (`README.md`, `docs/development.md`
+— WSL2 ist jetzt der primäre, nicht mehr der alternative Weg —, `docs/deployment.md`,
+`docs/architecture.md`, `docs/glossar.md`, `.editorconfig`), mit einer Ausnahme: historische
+Journal-Einträge (Abschnitt 10 oben) beschreiben korrekt, was zum jeweiligen Zeitpunkt der Fall
+war, und wurden bewusst nicht rückwirkend umgeschrieben — dieselbe Konvention wie schon bei der
+ImmoDesk-Umbenennung (Abschnitt 15). Zusätzlich zur Code-Änderung wünschte der Nutzer eine
+Dokumentation der Abweichung von der Aufgabenstellung direkt in
+`Aufgabenstellung/PropertyManager SaaS Grundstruktur.docx` selbst (nicht nur in `docs/`) — dort
+als neuer Abschnitt 21 angehängt (Werkzeuge: `python-docx`, in WSL2 nachinstalliert, da weder
+`pip` noch das Paket vorher verfügbar waren), mit Begründung (ARM64-Docker-Desktop-Bug,
+Windows-Anwendungssteuerungsrichtlinie) und dem stattdessen verwendeten Werkzeug (WSL2).

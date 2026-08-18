@@ -40,12 +40,15 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
 
 ## 3. Datenbank & Infrastruktur (Schritt 5)
 - [x] PostgreSQL als DB-Verbindung konfiguriert (.env/.env.example)
-- [x] Docker-Setup: `docker-compose.yml` (app/nginx/queue/scheduler/node/pgsql/redis),
-      `docker/php/Dockerfile` (PHP 8.4-fpm-alpine + benötigte Extensions), `docker/nginx/default.conf`,
-      `.dockerignore` — Start mit `docker compose up -d --build` (siehe `docs/development.md`)
-- [x] Redis: Cache-/Queue-/Session-Treiber bereits in Laravel-Configs vorhanden, `REDIS_HOST=redis`
-      gesetzt; Standard-Treiber bleiben vorerst `database` (kein Redis-Zwang für einfaches lokales Dev
-      ohne Docker) — Queue-Worker- und Scheduler-Container sind aber bereits vorbereitet
+- [x] Docker-Setup ursprünglich erstellt (`docker-compose.yml`, `docker/php/Dockerfile`,
+      `docker/nginx/default.conf`), **später wieder entfernt** — auf dieser Maschine nie lauffähig
+      (siehe Blocker unten) und damit nie tatsächlich genutzt; Details und Begründung in
+      `docs/project-journal.md` (Abschnitt 18) sowie zusätzlich in
+      `Aufgabenstellung/PropertyManager SaaS Grundstruktur.docx` (Abschnitt 21) dokumentiert.
+      `docker/render/Dockerfile` (Render-Deployment) und `.dockerignore` bleiben bestehen.
+- [x] Redis: Cache-/Queue-/Session-Treiber bereits in Laravel-Configs vorhanden,
+      `REDIS_HOST=127.0.0.1` gesetzt; Standard-Treiber bleiben vorerst `database` (kein
+      Redis-Zwang für einfaches lokales Dev)
 - [x] Laravel Reverb: architektonisch vorgesehen (BROADCAST_CONNECTION in .env), bewusst NICHT
       installiert, da noch kein Echtzeit-Use-Case existiert (vermeidet ungenutzte Dependency);
       Aktivierung dokumentiert in `docs/architecture.md` (`php artisan install:broadcasting`)
@@ -113,9 +116,10 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
 - [x] Wiederverwendbare UI-Komponenten: Button, Input, Card, Dialog (Modal), Dropdown,
       Avatar, Breadcrumb, Checkbox, Label, Sheet, Sidebar, Skeleton (Loading States),
       Tooltip (alle aus Starter-Kit) + neu: **Badge**, **Alert**, **EmptyState**
-- [~] Select, Table, Pagination, Form-Wrapper bewusst noch nicht gebaut — keine Datenlisten
-      existieren noch, die sie bräuchten (vermeidet premature abstraction); nachzuholen,
-      sobald die erste echte Listenansicht (z.B. Properties-Index) implementiert wird
+- [x] Select, Table, Pagination gebaut, sobald sie mit dem ersten echten CRUD (Properties,
+      siehe `docs/project-journal.md`, Abschnitt 17) tatsächlich gebraucht wurden; ein
+      eigener Form-Wrapper bewusst weiterhin nicht gebaut (Create/Edit-Formulare sind mit
+      5–6 Feldern zu klein für die Abstraktion)
 
 ## 9. Dashboard-Prototyp (Schritt 8, Abschnitt 8)
 - [x] Dashboard-Seite mit Mock-/Placeholder-Daten: Immobilien, Wohnungen, Mieter, Leerstand,
@@ -313,9 +317,13 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
 - `ensure-organization`-Middleware an Routen binden, sobald Organisations-Onboarding existiert
 - Rate Limiting auf neue Routen legen
 - Datei-Upload-Endpoint + Zugriffskontrolle für `documents` implementieren
-- Select/Table/Pagination/Form-Wrapper-Komponenten, sobald die erste echte Listenansicht kommt
 - Weitere Policies (Lease, Payment, Document, ...) nach dem Muster von `PropertyPolicy`
 - Laravel Reverb installieren, sobald ein Echtzeit-Use-Case ansteht
+
+Die eigentliche Fachlogik (Properties, Buildings, Units, Owners, Tenants, Contractors, Leases,
+Zahlungen, Reparaturen, ...) ist bewusst **nicht** Teil dieser Grundstruktur-Checkliste — dafür
+gibt es `docs/roadmap.md` (Priorisierung) und `docs/project-journal.md` (laufende Doku der
+Umsetzung, ab Abschnitt 17).
 
 ## Vorschlag: erste Commit-Struktur
 
