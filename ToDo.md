@@ -53,13 +53,13 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
       `endpoint`/`use_path_style_endpoint` (MinIO/Spaces-kompatibel) — Laravel-Default, keine
       Änderung nötig; AWS_ENDPOINT/AWS_URL in .env.example ergänzt
 
-> **Bekannter Blocker (Umgebung, nicht Code):** Auf diesem Rechner blockiert eine Windows-
-> Anwendungssteuerungsrichtlinie sowohl die PHP-`pdo_sqlite`/`sqlite3`-Extensions als auch
-> `initdb.exe` der lokalen PostgreSQL-Installation (jeweils identische Fehlermeldung
-> "Eine Anwendungssteuerungsrichtlinie hat diese Datei blockiert"). Es existiert daher aktuell
-> **keine lauffähige lokale Datenbank** – Migrationen und Tests können erst ausgeführt werden,
-> sobald eine DB erreichbar ist (z.B. via Docker auf einem anderen Host oder nach IT-Freigabe).
-> Auf Nutzerwunsch wird bis dahin ohne laufende DB weitergebaut (Dateien/Konfiguration/Doku).
+> **DB-Blocker gelöst:** Docker Desktop startet auf dieser ARM64-Windows-Maschine grundsätzlich
+> nicht (bekanntes, plattformweites Problem, kein Einzelfall — siehe `docs/development.md`).
+> Lösung: PHP, Composer und PostgreSQL laufen stattdessen direkt in WSL2/Ubuntu statt unter
+> nativem Windows, wodurch auch die eingangs gefundene Anwendungssteuerungsrichtlinie
+> (blockierte PHP-SQLite-Extensions/`initdb.exe`) gegenstandslos wird, da sie nur natives
+> Windows betrifft. Ergebnis: alle 22 Migrationen laufen, 36/36 Tests grün, echter Login im
+> Browser verifiziert. Details und Setup-Anleitung: `docs/development.md`.
 
 ## 4. Grundlegende Projektstruktur (Schritt 6)
 - [x] Backend-Verzeichnisstruktur: Form Requests (vorhanden), Policies (`app/Policies/`,
@@ -77,11 +77,12 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
       `organization_user`, `properties`, `buildings`, `units`, `owners`, `tenants`, `contractors`,
       `leases`, `payments`, `invoices`, `expenses`, `document_categories`, `documents`,
       `maintenance_requests`, `maintenance_comments`, `appointments`, `activity_logs`
-      (PHP-Syntax geprüft, noch nicht ausgeführt — siehe DB-Blocker oben)
+      — **alle 22 Migrationen laufen erfolgreich gegen echtes PostgreSQL 16** (verifiziert via
+      WSL2, siehe `docs/development.md`)
 - [x] ULIDs für öffentliche IDs (`ulid`-Spalte + `HasUlid`-Trait), Foreign Keys, Unique
       Constraints, Timestamps, Soft Deletes wo sinnvoll (nicht bei Pivot/Log-Tabellen)
-- [x] Eloquent-Modelle mit Beziehungen für alle Tabellen (`app/Models/*.php`), per
-      Smoke-Test ohne DB erfolgreich geladen
+- [x] Eloquent-Modelle mit Beziehungen für alle Tabellen (`app/Models/*.php`), gegen echte DB
+      verifiziert (Migrationen + volle Test-Suite grün)
 
 ## 6. Multi-Tenancy (Abschnitt 3)
 - [x] Architektur festgelegt: `organizations` + `organization_user`-Pivot (Rolle pro
@@ -143,17 +144,23 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
       `tests/Feature/Authorization/PropertyPolicyTest.php` (5 Tests: Property Manager, Owner,
       Tenant, fremde Organisation, Super Admin) — Authentication-Tests waren bereits im
       Starter-Kit vorhanden (Login/Register/Password-Reset/Email-Verification)
-- [~] Ausführung nicht möglich (DB-Blocker, s.o.) — alle 36 Tests scheitern einheitlich exakt
-      an `could not find driver (sqlite)`, was bestätigt, dass Test- und Anwendungscode
-      strukturell korrekt sind und nur die fehlende DB-Verbindung im Weg steht
+- [x] **36/36 Tests grün** gegen echtes PostgreSQL (via WSL2, siehe `docs/development.md`).
+      Zwei ursprüngliche Fehlschläge waren korrekte Konsequenzen eigener Architekturentscheidungen
+      und wurden im Test angepasst (nicht im Anwendungscode): `ProfileUpdateTest` erwartete
+      hartes statt weiches Löschen (User nutzt jetzt `SoftDeletes`) → auf `->trashed()`
+      umgestellt; `PropertyPolicyTest` rief `can()` ohne `actingAs()` auf, wodurch
+      `OrganizationScope` beim Nachladen der `owner`-Beziehung mangels `auth()->user()` leer
+      blieb → `actingAs()` ergänzt. Details in `docs/project-journal.md`, Abschnitt 12.
 
 ## 12. Qualitätskontrolle (Schritt 10–11, Abschnitt 19)
-- [~] Laravel Tests: geschrieben, Ausführung blockiert (siehe DB-Blocker)
+- [x] Laravel Tests: **36/36 grün** gegen echte PostgreSQL-Instanz (siehe oben)
 - [x] TypeScript Check (`vue-tsc --noEmit`) — fehlerfrei
 - [x] ESLint (`eslint .`) — fehlerfrei
 - [x] Frontend Build (`npm run build`) — erfolgreich
 - [x] Laravel Pint (`vendor/bin/pint --test`) — fehlerfrei (mehrere Dateien des Starter-Kits
       selbst waren nicht Pint-konform und wurden mitkorrigiert)
+- [x] Echter End-to-End-Login im Browser verifiziert (Testnutzer → Formular → Redirect →
+      authentifiziertes Dashboard)
 - [x] Mehrere echte Bugs im offiziellen `laravel/vue-starter-kit`-Template gefunden und behoben
       (siehe Abschnitt 1) statt nur den eigenen Code zu prüfen
 
@@ -167,6 +174,7 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
 - [x] `docs/development.md`
 - [x] `docs/project-journal.md` (zusätzlich, nicht in Abschnitt 15 explizit gefordert):
       Projektbegleitende Doku mit Aufgabenstellung + Herangehensweise, wird laufend fortgeschrieben
+- [x] `docs/glossar.md` (zusätzlich): Tech-Stack- und Fachbegriffe für Nicht-Techniker erklärt
 
 ## 14. Git-Hygiene (Abschnitt 16)
 - [x] `.gitignore` durch die vom offiziellen Starter-Kit mitgelieferte Version ersetzt
@@ -179,7 +187,6 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
 
 ## Offene Punkte (bewusst nicht Teil dieser Grundstruktur)
 
-- Migrationen/Tests real gegen eine laufende PostgreSQL-Instanz ausführen (DB-Blocker, s. o.)
 - `ensure-organization`-Middleware an Routen binden, sobald Organisations-Onboarding existiert
 - Rate Limiting auf neue Routen legen
 - Datei-Upload-Endpoint + Zugriffskontrolle für `documents` implementieren
@@ -202,6 +209,11 @@ eines Mega-Commits:
 6. `feat: docker development environment` — docker-compose.yml, Dockerfile, nginx-Config
 7. `test: add tenant isolation and authorization tests`
 8. `docs: add architecture, database, auth and multi-tenancy documentation`
+9. `fix: adjust tests for soft-deleting users and scoped policy checks` — die beiden
+   Testanpassungen aus Abschnitt 11 (SoftDeletes/`trashed()`, `actingAs()` in PropertyPolicyTest)
+10. `docs: document WSL2-native PHP/PostgreSQL setup for Windows-on-ARM64` — Ergänzungen in
+    `development.md`, `database.md`, `glossar.md`, `project-journal.md` rund um den
+    Docker-Desktop-ARM64-Bug und die WSL2-Lösung
 
 ---
 

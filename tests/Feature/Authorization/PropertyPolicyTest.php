@@ -25,6 +25,11 @@ test('an owner can only view their own property, not manage it', function () {
     $ownProperty = Property::factory()->for($organization)->create(['owner_id' => $owner->id]);
     $otherProperty = Property::factory()->for($organization)->create();
 
+    // PropertyPolicy::view() loads $property->owner, which — like every
+    // organization-scoped relation — is filtered by OrganizationScope based
+    // on the authenticated user, so it must actually be resolvable here.
+    $this->actingAs($ownerUser);
+
     expect($ownerUser->can('view', $ownProperty))->toBeTrue();
     expect($ownerUser->can('view', $otherProperty))->toBeFalse();
     expect($ownerUser->can('update', $ownProperty))->toBeFalse();

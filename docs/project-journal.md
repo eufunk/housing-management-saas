@@ -7,6 +7,8 @@ der Architektur beschreiben (siehe [architecture.md](architecture.md),
 [authorization.md](authorization.md), [multi-tenancy.md](multi-tenancy.md),
 [development.md](development.md)). Wird während der weiteren Arbeit am Projekt fortgeschrieben.
 
+Fachbegriffe und Tech-Stack-Namen werden in [glossar.md](glossar.md) erklärt.
+
 Der laufende Umsetzungsstand mit Checklisten steht in [`ToDo.md`](../ToDo.md) im Repo-Root.
 
 ---
@@ -15,9 +17,10 @@ Der laufende Umsetzungsstand mit Checklisten steht in [`ToDo.md`](../ToDo.md) im
 
 Quelle: `Aufgabenstellung/PropertyManager SaaS Grundstruktur.docx`.
 
-Kernauftrag: Aufbau der **professionellen Grundstruktur** einer SaaS-Anwendung zur Haus- und
-Immobilienverwaltung — ausdrücklich **nicht** die vollständige Fachanwendung. Vorgegebener
-Stack:
+Kernauftrag: Aufbau der **professionellen Grundstruktur** einer SaaS-Anwendung (Software as a
+Service — eine zentral gehostete Anwendung, die Nutzer:innen über den Browser nutzen, typischerweise
+im Abo-Modell, ohne lokale Installation) zur Haus- und Immobilienverwaltung — ausdrücklich
+**nicht** die vollständige Fachanwendung. Vorgegebener Stack:
 
 - **Backend**: PHP 8.4+/Laravel (aktuelle stabile Version), Eloquent, Migrations, Policies/Gates,
   Form Requests, Jobs/Queues, Notifications, Events, Scheduler, REST wo sinnvoll
@@ -138,6 +141,8 @@ alle einheitlich exakt am fehlenden Datenbanktreiber — ein Beleg dafür, dass 
 Anwendungscode strukturell korrekt sind und einzig die Infrastruktur fehlt. Details siehe
 [database.md](database.md) und [development.md](development.md).
 
+*(Dieser Blocker wurde später aufgelöst — siehe Abschnitt 12.)*
+
 ### 8. Rollen und Autorisierung nach demselben Muster wie Multi-Tenancy
 
 Statt eines zusätzlichen Berechtigungspakets (z. B. spatie/laravel-permission) wurden die vier
@@ -172,3 +177,70 @@ README wurden konsistent mit dem tatsächlich gebauten Code geschrieben (nicht v
 Änderungen wurden erst committet und gepusht, nachdem der Nutzer explizit danach gefragt hatte
 — vorher blieb der Arbeitsstand unversioniert im Working Tree, wie in den
 Ausführungsrichtlinien vorgesehen.
+
+### 12. Der DB-Blocker wird doch noch gelöst: Docker Desktop, WSL2 und eine hartnäckige Fehlersuche
+
+Auf Wunsch des Nutzers wurde der ungelöste DB-Blocker aus Abschnitt 7 noch einmal angegangen,
+diesmal mit dem Ziel, tatsächlich eine laufende Datenbank auf der Entwicklungsmaschine zu
+bekommen. Der Weg dorthin war deutlich steiniger als erwartet und ist selbst ein gutes Beispiel
+dafür, wie man sich durch mehrere, sich überlagernde Umgebungsprobleme durcharbeitet, statt bei
+der ersten Fehlermeldung aufzugeben:
+
+1. **Docker Desktop installieren.** WSL2 (Voraussetzung für Docker auf Windows 11 Home) wurde
+   installiert (`wsl --install`, Neustart). Docker Desktop selbst wurde per Chocolatey
+   installiert, startete aber nicht: Die Logs zeigten `wsl.exe --mount auf ARM64 erfordert
+   Windows 27653 oder höher` sowie `Exec format error` bei internen Docker-Hilfsprozessen —
+   die Entwicklungsmaschine läuft auf **Windows-on-ARM64**, und Docker Desktops WSL2-basierter
+   Mechanismus fürs Datenlaufwerk setzt dort einen Windows-Build voraus, der auf regulären
+   Stable-Channel-Installationen noch nicht existiert. Eine kurze Recherche zeigte: Das ist kein
+   Einzelfall dieser Maschine, sondern ein seit Jahren offenes, plattformweites Problem mit
+   mehreren aktiven GitHub-Issues über verschiedene Docker-Desktop-Versionen hinweg — das
+   systematische Ausprobieren älterer Versionen wurde deshalb bewusst *nicht* verfolgt, da es
+   eine Zeitwette mit sehr ungewissem Ausgang gewesen wäre.
+2. **Kurskorrektur: PostgreSQL direkt in WSL2, ohne Docker.** Da WSL2 selbst (unabhängig von
+   Docker) einwandfrei lief, wurde PostgreSQL direkt in der Ubuntu-Distribution installiert
+   (`apt install postgresql`) — `initdb` lief dort ohne Probleme, da die blockierende
+   Windows-Anwendungssteuerungsrichtlinie ausschließlich native Windows-Programme betrifft,
+   nicht Programme innerhalb der Linux-VM.
+3. **Neue, unerwartete Instabilität: Windows↔WSL2-Networking.** Die Verbindung von
+   nativem Windows-PHP zur WSL2-Datenbank funktionierte zunächst nicht zuverlässig — mal ging
+   sie, mal kam "Connection refused", ohne erkennbares Muster. Systematisches Nachprüfen zeigte:
+   Selbst Windows-eigene Tools wie `Test-NetConnection` und `curl.exe` waren betroffen, während
+   PowerShells `.NET`-Netzwerkschicht zuverlässig funktionierte — ein Hinweis darauf, dass es
+   sich nicht um ein PHP-spezifisches Problem handelte. Nach einem WSL2-Neustart
+   (`wsl --shutdown`) und Umstellen von PostgreSQL auf `listen_addresses = '*'` plus direkter
+   Verbindung über die WSL2-VM-IP (statt der üblichen `localhost`-Weiterleitung) ließ sich das
+   Muster genauer eingrenzen: Native Windows-Programme (`php.exe`, `curl.exe`) scheiterten
+   weiterhin konsequent, obwohl PowerShell-Tools dieselbe Verbindung zuverlässig herstellen
+   konnten — exakt dasselbe Verhalten wie die Anwendungssteuerungsrichtlinie aus Abschnitt 7,
+   nur diesmal auf Netzwerkebene statt bei Datei-/Prozessausführung.
+4. **Finale Lösung: PHP selbst in WSL2 betreiben.** Statt weiter zu versuchen, natives
+   Windows-PHP zuverlässig mit einer in WSL2 laufenden Datenbank zu verbinden, wurde PHP,
+   Composer und die nötigen Extensions ebenfalls direkt in WSL2 installiert. Das Projekt bleibt
+   dabei am gewohnten Ort auf der Windows-Festplatte (erreichbar über `/mnt/c/...`), nur die
+   Ausführung von `php`/`composer`/`artisan` wandert nach WSL2. Damit ist keine Windows-Grenze
+   mehr beteiligt, die die Anwendungssteuerungsrichtlinie überhaupt greifen lassen könnte.
+5. **Vollständige Verifikation.** Mit diesem Aufbau liefen alle 22 Migrationen sauber gegen
+   PostgreSQL durch, die komplette Pest-Suite (36 Tests) war grün — bis auf zwei Ausnahmen, die
+   sich als direkte, korrekte Konsequenzen eigener Architekturentscheidungen entpuppten und
+   entsprechend angepasst wurden, statt sie als Bugs zu behandeln:
+   - `ProfileUpdateTest`: Der Test des Starter-Kits erwartete, dass ein gelöschter Nutzer über
+     `$user->fresh()` `null` liefert — das gilt aber nur für hartes Löschen. Da `User` inzwischen
+     `SoftDeletes` nutzt (Teil des Multi-Tenancy-Datenmodells), liefert `fresh()` bewusst weiterhin
+     den (jetzt als gelöscht markierten) Datensatz, da `fresh()` laut Eloquent-Design alle
+     globalen Scopes umgeht. Der Test wurde entsprechend auf `->trashed()` umgestellt.
+   - `PropertyPolicyTest`: Ein Policy-Test rief `$user->can(...)` auf, ohne den Nutzer zuvor per
+     `actingAs()` zu authentifizieren. Da `OrganizationScope` (siehe
+     [multi-tenancy.md](multi-tenancy.md)) beim Nachladen der `owner`-Beziehung auf
+     `auth()->user()` zugreift, lieferte diese Beziehung ohne eingeloggten Nutzer keine Daten —
+     ein Testaufbau-Fehler, kein Fehler in Policy oder Scope. Behoben durch `actingAs()` vor den
+     Assertions.
+   Abschließend wurde ein echter Login über die tatsächlich laufende Anwendung im Browser
+   verifiziert (Testnutzer, Formular, Redirect zum Dashboard) — nicht nur isoliert per Tests.
+
+**Lehre:** Mehrere unabhängige Umgebungsprobleme können sich überlagern und einander verdecken
+(App-Control-Policy, ARM64-Docker-Bug, WSL2-Netzwerkinstabilität sahen zunächst wie ein
+einziges, diffuses "Datenbank geht nicht"-Problem aus). Sie einzeln, mit jeweils eigenen
+Diagnoseschritten zu isolieren — statt vorschnell eine Ursache anzunehmen und danach zu
+optimieren — war hier der Weg zu einer tatsächlich funktionierenden Lösung. Details und
+Setup-Anleitung: [development.md](development.md).

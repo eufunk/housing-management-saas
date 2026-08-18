@@ -76,7 +76,10 @@ class ProfileUpdateTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        // User now soft-deletes (see App\Models\Concerns for the multi-tenant
+        // schema), so fresh() — which bypasses scopes — still finds the row;
+        // assert it was trashed rather than that it's gone entirely.
+        $this->assertTrue($user->fresh()->trashed());
     }
 
     public function test_correct_password_must_be_provided_to_delete_account()

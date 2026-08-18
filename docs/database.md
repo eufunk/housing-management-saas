@@ -55,9 +55,8 @@ Vollständige Spaltenlisten: `database/migrations/`. Beziehungen: `app/Models/*.
 php artisan migrate
 ```
 
-> **Hinweis für diese Umgebung:** Auf der Entwicklungsmaschine, auf der dieses Grundgerüst
-> erstellt wurde, blockiert eine Windows-Anwendungssteuerungsrichtlinie sowohl die
-> PHP-SQLite-Erweiterungen als auch `initdb.exe` einer lokalen PostgreSQL-Installation.
-> Migrationen wurden daher nur auf PHP-Syntax geprüft (`php -l`) und die Models per
-> Smoke-Test ohne DB-Verbindung geladen — eine tatsächliche Ausführung gegen eine laufende
-> PostgreSQL-Instanz (z. B. via Docker, siehe [development.md](development.md)) steht noch aus.
+Verifiziert: alle 22 Migrationen laufen sauber gegen eine echte PostgreSQL-16-Instanz durch,
+ebenso die vollständige Test-Suite (`php artisan test`, 36/36 grün) und ein realer
+End-to-End-Login. Auf Windows-on-ARM64-Rechnern, wo weder Docker noch eine native
+PostgreSQL-Installation funktionieren (siehe [development.md](development.md)), laufen PHP und
+PostgreSQL dafür innerhalb von WSL2 statt unter nativem Windows.

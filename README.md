@@ -27,6 +27,10 @@ docker compose exec app php artisan migrate
 
 App: `http://localhost:8080` · Vite-Dev-Server: `http://localhost:5173`
 
+**Windows-on-ARM64:** Docker Desktop kann dort aktuell nicht starten (bekanntes,
+plattformweites Problem). Alternative ohne Docker — PHP + PostgreSQL nativ in WSL2 — siehe
+[docs/development.md](docs/development.md#alternative-php--postgresql-nativ-in-wsl2-ohne-docker).
+
 Ohne Docker sowie weitere Befehle (Tests, Code-Style, ...): siehe
 [docs/development.md](docs/development.md).
 
@@ -41,6 +45,7 @@ Ohne Docker sowie weitere Befehle (Tests, Code-Style, ...): siehe
 | [docs/multi-tenancy.md](docs/multi-tenancy.md)                     | Mandantenmodell und Isolationsstrategie                       |
 | [docs/development.md](docs/development.md)                           | Setup, Docker-Befehle, QA-Checks                                 |
 | [docs/project-journal.md](docs/project-journal.md)                     | Aufgabenstellung und Herangehensweise (Projektdoku)               |
+| [docs/glossar.md](docs/glossar.md)                                        | Glossar: Tech-Stack und Fachbegriffe erklärt                        |
 
 ## Rollen
 
