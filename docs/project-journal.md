@@ -330,3 +330,76 @@ Auf Wunsch des Nutzers wurde die Dokumentation zugunsten von README.md schlank g
 Details dort zu duplizieren, verweist README.md nur noch mit einem einzeiligen Infofeld auf
 `docs/deployment.md`, wo der kostenlose Render+Neon-Weg jetzt vor Laravel Cloud steht (das als
 kostenpflichtige, komfortablere Alternative erhalten bleibt, nicht gelöscht wurde).
+
+### 15. Ein echter Name: PropertyManager → ImmoDesk
+
+"PropertyManager" war von Anfang an nur ein Arbeitstitel — entstanden, weil die allererste
+`ToDo.md` einen Namen brauchte, um überhaupt anzufangen, nicht aus einer bewussten
+Markenentscheidung. Der Nutzer störte sich zu Recht daran, als die App zum ersten Mal eine
+echte, öffentlich sichtbare Startseite bekam (Abschnitt 13) und der Platzhaltername dort
+plötzlich sichtbar wurde, statt nur intern in Konfigurationsdateien zu stehen.
+
+Auf die Rückfrage, wofür die App konkret gedacht ist, folgte eine kurze, konkrete Erklärung
+(Zielgruppe: Hausverwaltungsfirmen; Module: Immobilien/Gebäude/Wohnungen, Mietverträge,
+Finanzen, Reparaturen, Dokumente, Termine; Rollen: Property Manager, Eigentümer, Mieter,
+Handwerker). Der Nutzer bat um zehn Namensvorschläge, dann um zehn weitere — beide Runden bewusst
+als offene Liste in der Chat-Antwort präsentiert statt über eine erzwungene Auswahl-UI, da bei
+zehn gleichwertigen Optionen kein einzelner Vorschlag als "empfohlen" markiert werden sollte.
+Erst nach der zweiten Runde bat der Nutzer um eine ausführlichere Beschreibung der App, um selbst
+einen passenden Namen zu finden — daraufhin entschied er sich für **ImmoDesk** mit der Tagline
+"Die zentrale Plattform für Immobilienverwaltung", die er in eigenen Worten und mit Verweis auf
+"ähnlich wie ImmoCloud" formulierte.
+
+Bei der Umsetzung war Sorgfalt gefragt: Der alte Arbeitstitel "PropertyManager" tauchte im Code
+nicht nur als Markenname auf, sondern zufällig auch als Name des Enum-Case
+`OrganizationRole::PropertyManager` — die Rolle "Property Manager" in der Rollenhierarchie
+(Super Admin, Property Manager, Owner, Tenant, Contractor aus der ursprünglichen
+Aufgabenstellung). Eine reine Text-Ersetzung über den ganzen Code hätte diesen fachlich
+korrekten, vom Markennamen völlig unabhängigen Begriff mit umbenannt. Vor der Umbenennung wurde
+daher gezielt nach allen Vorkommen von "PropertyManager" gesucht und jedes einzeln eingeordnet:
+Markenname (→ umbenennen: `APP_NAME`, Demo-E-Mail-Domain, README, Docker-Netzwerkname) versus
+Rollenname (→ unverändert lassen) versus historischer Verweis auf die tatsächliche
+Dateibenennung der Aufgabenstellung oder auf bereits vergangene, im Journal korrekt beschriebene
+Entscheidungen (→ ebenfalls unverändert lassen, da rückwirkendes Umschreiben von Geschichte hier
+falsch wäre).
+
+Direkt danach wurde die Landingpage nochmal verfeinert: Die neue Headline wurde als "zu groß und
+zu grob" empfunden (kleiner, leichter gemacht), und der Wunsch nach einem "farblichen Layout"
+deckte eine echte Design-Eigenschaft auf, die vorher nicht auffiel — das gesamte Theme nutzt
+Shadcns "neutral"-Basisfarbe, bei der `--primary` buchstäblich 0 % Farbsättigung hat (reines
+Schwarz/Weiß). Statt das globale Theme umzubauen (hätte Sidebar, Dashboard, Formulare etc.
+mitverändert — eine größere Entscheidung, die nicht gefragt war), bekam bewusst nur die
+Landingpage echte Farbe: sechs unterschiedlich einfärbte Icon-Chips für die Modul-Kacheln, ein
+dezenter Farbverlauf hinter dem Hero, ein blauer Haupt-Call-to-Action.
+
+### 16. Von der Konkurrenzanalyse zur Produkt-Roadmap
+
+Der Nutzer recherchierte eigenständig die Website der Immobilienverwaltung Riebeling GmbH und
+brachte eine wichtige Neuausrichtung mit: Die bisherige Leitidee ("Ordnung ins Chaos bringen")
+unterstellt, Hausverwaltungen hätten keine Software — Riebeling zeigt, dass professionelle
+Verwaltungen längst digital arbeiten (eigenes Ticketsystem mit Vorgangsnummern, Mängelmeldung
+mit bis zu drei Fotos, Eigentümerportal mit monatlichem Reporting). Die eigentlich hilfreiche
+Frage lautet daher nicht "brauchen sie Software", sondern "was könnte diese Software besser,
+einfacher oder intelligenter machen". Der Nutzer bezeichnete Riebeling ausdrücklich als
+**Referenzunternehmen für Anforderungsanalyse**, nicht als Kunde oder Vorlage zum Kopieren — eine
+wichtige, selbst gesetzte ethische Leitplanke, die unverändert in die neue Roadmap-Dokumentation
+übernommen wurde.
+
+Der Feature-Abgleich (Riebeling-Funktion gegen bestehendes Datenmodell) ergab ein ermutigendes
+Bild: Jede beobachtete Riebeling-Funktion hat bereits eine Entsprechung im während der
+Grundstruktur-Phase entworfenen Schema (`maintenance_requests` deckt das Ticketsystem ab,
+`documents` die Fotoanhänge, `contractors.specialty` wäre die Grundlage für eine spätere
+Handwerker-Zuordnung, die Owner-Rolle plus `PropertyPolicy` das Eigentümerportal). Es fehlt nicht
+Architektur, sondern echte Fachlogik statt der aktuellen EmptyState-Platzhalter — eine
+Bestätigung, dass die Grundstruktur-Entscheidungen tragfähig waren.
+
+Auf Bitte des Nutzers wurde daraus `docs/roadmap.md` — ein neues, bewusst *vorausschauendes*
+Dokument (im Unterschied zum rückblickenden `project-journal.md` und der
+Grundstruktur-Checkliste `ToDo.md`) mit einer vorgeschlagenen Sechs-Phasen-Reihenfolge
+(Stammdaten → Mietverträge → Reparatur-Workflow mit Vorgangsnummer → Finanzen →
+Eigentümerportal → KI-gestützte Vorgangsbearbeitung zuletzt, da sie echte Daten aus Phase 3
+braucht). WEG-Verwaltung — von Riebeling zusätzlich angeboten — wurde explizit *nicht* in die
+Roadmap aufgenommen, sondern als eigene, spätere Grundsatzentscheidung benannt: rechtlich und
+strukturell ein anderes Feld als Mietverwaltung, kein Nebeneffekt, der einfach mitgebaut würde.
+Dieses Dokument wird als Arbeitsgrundlage für die Priorisierung kommender
+Implementierungsschritte verwendet, bis der Nutzer etwas anderes vorgibt.

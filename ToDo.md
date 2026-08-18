@@ -265,6 +265,47 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
       einzeiliges Infofeld mit Verweis auf die MD-Datei reduziert (statt Details im README zu
       duplizieren)
 
+## 18. Umbenennung: PropertyManager → ImmoDesk (auf Nutzeranfrage)
+- [x] Nutzer störte sich am Arbeitstitel "PropertyManager" auf der öffentlichen Startseite;
+      nach kurzer Erklärung, wofür die App konkret gedacht ist, 20 Namensvorschläge in zwei
+      Runden gemacht — Nutzer entschied sich für **ImmoDesk** mit Tagline
+      "Die zentrale Plattform für Immobilienverwaltung"
+- [x] `APP_NAME` in `.env`/`.env.example`/`docs/deployment.md` auf `ImmoDesk` umgestellt; da
+      `resources/views/app.blade.php` und `AppLogo.vue`/`Welcome.vue` bereits dynamisch
+      `config('app.name')`/`page.props.name` nutzen (keine hartcodierten Vorkommen), betraf das
+      nur die Konfiguration selbst, keine Vue-Komponenten
+- [x] Demo-Account-E-Mail (`App\Actions\ProvisionDemoAccount::DEMO_EMAIL`) und deren Erwähnung in
+      `docs/authentication.md` von `@propertymanager.app` auf `@immodesk.app` angepasst; Docker-
+      Netzwerkname in `docker-compose.yml` (rein intern, nicht sichtbar) ebenfalls umbenannt
+- [x] **Bewusst NICHT umbenannt**: `OrganizationRole::PropertyManager` (Enum-Case für die Rolle
+      "Property Manager") — eine zufällige Namensgleichheit mit dem alten Arbeitstitel, aber
+      inhaltlich ein legitimer, vom App-Namen unabhängiger Fachbegriff (die Berufsrolle
+      "Property Manager" existiert unabhängig davon, wie die Software selbst heißt)
+- [x] `Welcome.vue`-Hero um die neue Tagline und eine an die Nutzerbeschreibung angelehnte
+      Unterzeile ergänzt ("zentralisiert die Verwaltung von Immobilien, Mietern, Verträgen,
+      Zahlungen, Dokumenten und Reparaturen …")
+- [x] Historische Erwähnungen des alten Namens bewusst unverändert gelassen, wo sie Vergangenes
+      korrekt beschreiben (z. B. `docs/project-journal.md` Abschnitt 13 zitiert wörtlich eine
+      damalige Annahme unter dem alten Namen) oder auf die tatsächliche Dateibenennung der
+      Aufgabenstellung verweisen (`Aufgabenstellung/PropertyManager SaaS Grundstruktur.docx`)
+
+## 19. Landingpage-Feinschliff und Produkt-Roadmap (auf Nutzeranfrage)
+- [x] Hero-Überschrift verkleinert/entfettet (`text-4xl font-bold` → `text-2xl font-semibold`)
+      und auf "Digitale Betriebs- und Verwaltungsplattform für Hausverwaltungen" präzisiert —
+      Nutzer bemängelte, die vorherige Version sei "zu groß und zu grob"
+- [x] Landingpage bekommt bewusst als einzige Seite echte Farbe (Rest der App bleibt beim
+      neutralen Shadcn-Theme, `--primary` ist dort 0 % Sättigung, also reines Schwarz/Weiß):
+      6 farbige Icon-Chips pro Modul-Kachel, sanfter Farbverlauf hinter dem Hero, blauer
+      Haupt-CTA-Button
+- [x] `docs/roadmap.md` neu angelegt: Produkt-Roadmap nach Wettbewerbsrecherche (Immobilien-
+      verwaltung Riebeling GmbH als **Referenzunternehmen für Anforderungen**, nicht als
+      Kopiervorlage) — Feature-Abgleich zeigt, dass das Datenmodell aus der Grundstruktur bereits
+      jede beobachtete Riebeling-Funktion abdeckt; es fehlt echte Fachlogik, nicht Architektur.
+      Enthält priorisierte 6-Phasen-Roadmap (Stammdaten → Mietverträge → Reparatur-Workflow mit
+      Vorgangsnummer/Fotos → Finanzen → Eigentümerportal/Reporting → KI-gestützte
+      Vorgangsbearbeitung) sowie bewusst zurückgestellte Grundsatzentscheidungen (v. a.
+      WEG-Verwaltung — rechtlich/strukturell ein anderes Feld, kein impliziter Bestandteil)
+
 ---
 
 ## Offene Punkte (bewusst nicht Teil dieser Grundstruktur)

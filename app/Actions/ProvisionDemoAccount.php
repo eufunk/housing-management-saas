@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
  */
 class ProvisionDemoAccount
 {
-    public const DEMO_EMAIL = 'demo@propertymanager.app';
+    public const DEMO_EMAIL = 'demo@immodesk.app';
 
     public function handle(): User
     {

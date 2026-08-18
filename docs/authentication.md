@@ -32,7 +32,7 @@ Für öffentlichen Zugang ohne Registrierung gibt es zusätzlich `App\Http\Contr
 DemoLoginController` (`POST /demo-login`, Route-Name `demo-login`, `guest`-Middleware +
 `throttle:10,1`). Er loggt Besucher:innen ohne Passwortabfrage in einen **einzigen, gemeinsam
 genutzten** Demo-Account ein, den `App\Actions\ProvisionDemoAccount` bei Bedarf automatisch
-anlegt (Organisation "Demo Hausverwaltung", Nutzer `demo@propertymanager.app`, Rolle
+anlegt (Organisation "Demo Hausverwaltung", Nutzer `demo@immodesk.app`, Rolle
 `property_manager`) — idempotent: Existiert der Account bereits, wird er wiederverwendet;
 wurde er zwischenzeitlich gelöscht, wird er beim nächsten Klick automatisch neu angelegt
 ("self-healing").

@@ -41,7 +41,7 @@ dagegen dauerhaft weiter.
 5. **Instance Type**: "Free" auswählen.
 6. Umgebungsvariablen setzen (orientiert an `.env.example`):
    ```
-   APP_NAME=PropertyManager
+   APP_NAME=ImmoDesk
    APP_ENV=production
    APP_DEBUG=false
    APP_KEY=<lokal per "php artisan key:generate --show" erzeugen und hier eintragen>

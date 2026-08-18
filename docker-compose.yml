@@ -15,7 +15,7 @@ services:
             redis:
                 condition: service_healthy
         networks:
-            - propertymanager
+            - immodesk
 
     nginx:
         image: nginx:alpine
@@ -27,7 +27,7 @@ services:
         depends_on:
             - app
         networks:
-            - propertymanager
+            - immodesk
 
     queue:
         build:
@@ -46,7 +46,7 @@ services:
             redis:
                 condition: service_healthy
         networks:
-            - propertymanager
+            - immodesk
 
     scheduler:
         build:
@@ -65,7 +65,7 @@ services:
             redis:
                 condition: service_healthy
         networks:
-            - propertymanager
+            - immodesk
 
     node:
         image: node:22-alpine
@@ -77,7 +77,7 @@ services:
             - .:/var/www/html
             - node_modules_data:/var/www/html/node_modules
         networks:
-            - propertymanager
+            - immodesk
 
     pgsql:
         image: postgres:16-alpine
@@ -95,7 +95,7 @@ services:
             timeout: 5s
             retries: 10
         networks:
-            - propertymanager
+            - immodesk
 
     redis:
         image: redis:7-alpine
@@ -109,10 +109,10 @@ services:
             timeout: 5s
             retries: 10
         networks:
-            - propertymanager
+            - immodesk
 
 networks:
-    propertymanager:
+    immodesk:
         driver: bridge
 
 volumes:

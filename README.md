@@ -1,6 +1,8 @@
-# PropertyManager
+# ImmoDesk
 
-Modernes SaaS-Grundgerüst für professionelle Haus- und Immobilienverwaltung — Laravel 12,
+**Digitale Betriebs- und Verwaltungsplattform für Hausverwaltungen.** Für die laufende
+Verwaltung bereits vermieteter/verkaufter Objekte gedacht (Mietverträge, Zahlungen, Reparaturen,
+Dokumente) — nicht für Makler bzw. die Vermittlung neuer Miet-/Kaufinteressenten. Laravel 12,
 Vue 3 + TypeScript (Inertia.js), Tailwind CSS, PostgreSQL. Multi-Tenant-fähig von Grund auf.
 
 Dies ist die **Grundstruktur**: Architektur, Datenbankschema, Multi-Tenancy, Rollen/Policies,
@@ -49,6 +51,7 @@ Ohne Docker sowie weitere Befehle (Tests, Code-Style, ...): siehe
 | [docs/deployment.md](docs/deployment.md)                                | Öffentliche Bereitstellung (Render/Neon, Laravel Cloud), Gastzugang    |
 | [docs/project-journal.md](docs/project-journal.md)                        | Aufgabenstellung und Herangehensweise (Projektdoku)                  |
 | [docs/glossar.md](docs/glossar.md)                                           | Glossar: Tech-Stack und Fachbegriffe erklärt                           |
+| [docs/roadmap.md](docs/roadmap.md)                                              | Produkt-Roadmap: priorisierte nächste Implementierungsschritte            |
 
 ## Rollen
 
