@@ -87,6 +87,13 @@ eingeführt, wenn tatsächlicher Bedarf besteht (API-Client-Abstraktion bzw. glo
 State jenseits von Inertia-Props/Composables) — ansonsten wären es leere, ungenutzte
 Ordner entgegen der Vorgabe "keine toten Dateien".
 
+**Wichtige Falle bei der lowercase-`pages/`-Konvention:** `inertiajs/inertia-laravel` erwartet
+in seinem eigenen Default (`config('inertia.testing.page_paths')`) noch `resources/js/Pages`
+(Großbuchstabe) für den `assertInertia(...)->component(...)`-Testhelfer. Da Windows/WSL-Mounts
+(`/mnt/c/...`) case-**in**sensitiv sind, fällt eine Abweichung dort nicht auf — ein
+case-sensitiver Linux-CI-Runner schlägt jedoch zurecht fehl. Behoben über `config/inertia.php`
+(überschreibt `page_paths` und `testing.page_paths` auf `resources/js/pages`).
+
 ## KI-Funktionen
 
 Noch nicht implementiert. Wenn ein konkreter Anwendungsfall feststeht (z. B. automatisierte

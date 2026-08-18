@@ -279,3 +279,20 @@ den Modulen aktuell nur lesende Platzhalterseiten stehen (keine echten, verände
 Geschäftsdaten), können sich Besucher:innen aktuell nicht gegenseitig stören — sobald echte
 CRUD-Funktionalität existiert, ist eine session-isolierte Lösung der nächste Schritt (in
 `docs/authentication.md` als offener Punkt vermerkt, nicht stillschweigend ignoriert).
+
+Der anschließende Push löste zunächst einen fehlgeschlagenen CI-Lauf aus — diesmal aus einem
+Grund, der sich nicht per `gh`-CLI oder öffentlicher GitHub-API einsehen ließ (Job-Logs
+verlangen Repo-Admin-Rechte). Der Nutzer hat den entscheidenden Log-Ausschnitt manuell aus der
+GitHub-Oberfläche kopiert: `WelcomeTest > guests see the public landing page` scheiterte mit
+"Inertia page component file [Welcome] does not exist." Des Rätsels Lösung: `inertia-laravel`
+sucht Testkomponenten standardmäßig unter `resources/js/Pages` (Großbuchstabe), während dieses
+Projekt bewusst die moderne, kleingeschriebene `pages/`-Konvention nutzt (siehe
+[architecture.md](architecture.md)). Auf dem Windows/WSL-Mount (`/mnt/c/...`), auf dem lokal und
+in WSL2 entwickelt wird, ist das Dateisystem case-**in**sensitiv, sodass `Pages` und `pages`
+identisch aufgelöst werden und der Fehler unsichtbar blieb — ein weiterer Fall, in dem die
+lokale Entwicklungsumgebung dieses Projekts (bereits mehrfach Quelle von Überraschungen, siehe
+Abschnitt 12) einen Bug maskiert hat, den ein "echter" Linux-CI-Runner zurecht aufdeckte. Behoben
+über eine gezielte `config/inertia.php`-Ergänzung. Lehre: Wo eine öffentlich sichtbare Log-Zeile
+fehlt, lohnt es sich, gezielt danach zu fragen, statt auf Verdacht Konfigurationen zu ändern —
+das eigentliche Symptom (der volle Pest-Fehlertext) war um Größenordnungen aussagekräftiger als
+die generische "exit code 1"-Annotation.
