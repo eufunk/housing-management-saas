@@ -5,6 +5,7 @@ services:
             dockerfile: docker/php/Dockerfile
         volumes:
             - .:/var/www/html
+            - vendor_data:/var/www/html/vendor
         environment:
             DB_HOST: pgsql
             REDIS_HOST: redis
@@ -35,6 +36,7 @@ services:
         command: php artisan queue:work --tries=3 --sleep=3
         volumes:
             - .:/var/www/html
+            - vendor_data:/var/www/html/vendor
         environment:
             DB_HOST: pgsql
             REDIS_HOST: redis
@@ -53,6 +55,7 @@ services:
         command: php artisan schedule:work
         volumes:
             - .:/var/www/html
+            - vendor_data:/var/www/html/vendor
         environment:
             DB_HOST: pgsql
             REDIS_HOST: redis
@@ -72,6 +75,7 @@ services:
             - '5173:5173'
         volumes:
             - .:/var/www/html
+            - node_modules_data:/var/www/html/node_modules
         networks:
             - propertymanager
 
@@ -115,4 +119,8 @@ volumes:
     pgsql_data:
         driver: local
     redis_data:
+        driver: local
+    vendor_data:
+        driver: local
+    node_modules_data:
         driver: local

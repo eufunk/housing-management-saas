@@ -183,6 +183,28 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
 - [ ] Erste Commit-Struktur — **noch nicht committet**, da bisher kein expliziter Auftrag dazu
       vorlag; Vorschlag für sinnvolle Aufteilung siehe unten
 
+## 15. Dateileichen-Check (auf Nutzeranfrage)
+- [x] Vollständiges Repo auf ungenutzte/fehlerhafte Dateien geprüft. Gefunden und behoben:
+      - **Gelöscht** (nirgends mehr referenziert): `resources/js/layouts/app/AppHeaderLayout.vue`
+        (alternatives Top-Nav-Layout aus dem Starter-Kit, nie eingebunden — nur die geforderte
+        Sidebar-Variante wird genutzt) + `resources/js/components/AppHeader.vue` (einziger
+        Verwender war die gelöschte Layout-Datei)
+      - **Korrigiert**: `components.json` (shadcn-vue-Config) verwies noch auf die
+        Starter-Kit-Default-Pfade `resources/js/Components` (Großbuchstabe, existiert nicht) und
+        einen nicht existierenden `@/hooks`-Alias — auf tatsächliche Struktur angepasst
+      - **Echter Bug behoben**: `docker-compose.yml` mountete `.:/var/www/html` in
+        `app`/`queue`/`scheduler`, was das im Dockerfile gebaute `vendor/`-Verzeichnis bei einem
+        frischen Checkout überschrieben hätte (fehlender Composer-Autoloader im Container) — nie
+        aufgefallen, da Docker wegen des ARM64-Bugs nie bis zum Ende getestet wurde. Fix: benannte
+        Volumes für `vendor/` (app/queue/scheduler) und `node_modules/` (node-Service)
+      - **Geprüft, aber bewusst behalten**: `.dockerignore`, `docker-compose.yml`, `docker/*` —
+        auf dieser Maschine unbenutzbar (ARM64-Docker-Bug), aber von der Aufgabenstellung
+        gefordert und für andere Maschinen/Deployments weiterhin gültig
+      - Alle Shadcn-UI-Unterkomponenten (`collapsible`, `checkbox`, `navigation-menu`,
+        `separator`, `tooltip`, `skeleton`, `dialog`, `dropdown-menu`, ...) sowie `types/ziggy.ts`
+        (ambiente Typdeklaration, kein expliziter Import nötig) verifiziert als tatsächlich genutzt
+      - TypeScript, ESLint, Build und volle Pest-Suite (36/36) nach der Bereinigung erneut grün
+
 ---
 
 ## Offene Punkte (bewusst nicht Teil dieser Grundstruktur)
