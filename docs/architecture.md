@@ -59,9 +59,11 @@ Kurzfassung: `organizations` + `organization_user`-Pivot (Rolle pro Mitgliedscha
   Benachrichtigungen bei neuen Reparaturaufträgen) — wird eingeführt, sobald der erste
   konkrete Use-Case existiert.
 
-`app/Services/` und `app/Actions/` existieren aktuell noch nicht als Verzeichnisse, da leere
-Ordner ohne Inhalt keinen Mehrwert bieten und nicht von Git getrackt werden. Sie entstehen
-automatisch mit der ersten tatsächlich benötigten Klasse.
+`app/Services/` existiert aktuell noch nicht als Verzeichnis, da ein leerer Ordner ohne Inhalt
+keinen Mehrwert bietet und nicht von Git getrackt wird. `app/Actions/` wurde mit der ersten
+tatsächlich benötigten Klasse angelegt: `ProvisionDemoAccount` (siehe
+[authentication.md](authentication.md), Abschnitt Demo-Login) — eine isolierte
+Einzeloperation, die den öffentlichen Gastzugang ohne Registrierung bereitstellt.
 
 ## Frontend-Konventionen
 

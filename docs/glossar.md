@@ -204,6 +204,18 @@ Ein Webserver, der eingehende Anfragen entgegennimmt und PHP-Anfragen an PHP-FPM
 Der Prozess, der PHP-Code tatsächlich ausführt und die Ergebnisse an den Webserver (Nginx)
 zurückgibt.
 
+**PaaS (Platform as a Service)**
+Ein Hosting-Modell, bei dem man Code (oft direkt aus einem Git-Repository) hochlädt und der
+Anbieter Server, Betriebssystem, Datenbank-Bereitstellung usw. automatisch übernimmt — man
+kümmert sich nicht um einzelne Maschinen. **Laravel Cloud** (die von Laravel selbst betriebene
+Plattform), aber auch Anbieter wie Railway oder Render sind Beispiele dafür. Vergleichbar mit
+"Streamlit Community Cloud" für Python/Streamlit-Apps.
+
+**Health-Check**
+Eine spezielle, schlichte URL (hier: `/up`), die ein Hosting-Anbieter regelmäßig abruft, um zu
+prüfen, ob die Anwendung noch läuft und antwortet — nicht für Menschen gedacht, sondern für
+automatisierte Überwachung.
+
 ## Tools & Qualitätssicherung
 
 **Pest / PHPUnit**

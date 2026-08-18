@@ -5,7 +5,8 @@ vorgegangen wurde, im Unterschied zu den übrigen Dateien in `docs/`, die den *f
 der Architektur beschreiben (siehe [architecture.md](architecture.md),
 [database.md](database.md), [authentication.md](authentication.md),
 [authorization.md](authorization.md), [multi-tenancy.md](multi-tenancy.md),
-[development.md](development.md)). Wird während der weiteren Arbeit am Projekt fortgeschrieben.
+[development.md](development.md), [deployment.md](deployment.md)). Wird während der weiteren
+Arbeit am Projekt fortgeschrieben.
 
 Fachbegriffe und Tech-Stack-Namen werden in [glossar.md](glossar.md) erklärt.
 
@@ -244,3 +245,37 @@ einziges, diffuses "Datenbank geht nicht"-Problem aus). Sie einzeln, mit jeweils
 Diagnoseschritten zu isolieren — statt vorschnell eine Ursache anzunehmen und danach zu
 optimieren — war hier der Weg zu einer tatsächlich funktionierenden Lösung. Details und
 Setup-Anleitung: [development.md](development.md).
+
+### 13. Öffentlicher Zugang: Startseite, Demo-Login, Laravel Cloud
+
+Auf die Frage, wie sich die Anwendung öffentlich zugänglich machen ließe (mit Vergleich zu
+Streamlit Community Cloud, wo eine App direkt aus einem GitHub-Repository gebaut wird), wurde
+zunächst recherchiert statt aus dem Gedächtnis geantwortet: Laravel hat kein exaktes Äquivalent,
+aber **Laravel Cloud** — die offizielle, von Laravel selbst betriebene Plattform — verfolgt ein
+sehr ähnliches Prinzip (Repository verbinden, Datenbank hinzufügen, automatische Deploys bei
+jedem Push). Die offizielle Doku wurde gezielt abgerufen, um keine veralteten oder erfundenen
+Konfigurationsdetails zu dokumentieren: Laravel Cloud ist vollständig dashboard-gesteuert, es
+gibt **keine** Konfigurationsdatei, die im Repository liegen müsste (anders als z. B. bei
+Vercel).
+
+Die Rückfrage des Nutzers deckte dabei eine Fehlannahme aus einer früheren Session auf: Die
+Startseite (`/`) war zuvor bewusst auf `/login` umgeleitet worden, unter der Annahme,
+PropertyManager sei "ein rein internes B2B-Tool ohne öffentliche Landingpage". Der Nutzer
+stellte klar, dass eine echte Startseite nicht nur für eine Demo-Version, sondern für **alle**
+Endnutzer gebraucht wird — eine Korrektur einer zuvor eigenständig getroffenen Annahme, nicht
+nur eine Erweiterung. Entsprechend wurde `/` wieder auf eine echte, neu gestaltete Landingpage
+umgestellt (Hero, Modulübersicht, CTAs), statt die alte, gelöschte Laravel-Marketing-Seite
+wiederherzustellen. Dabei fiel zusätzlich auf, dass `AppLogo.vue` noch den Platzhaltertext
+"Laravel Starter Kit" statt des tatsächlichen Produktnamens anzeigte — ein weiterer
+Starter-Kit-Rest, der nie ersetzt worden war, und im selben Zug mitkorrigiert wurde.
+
+Für den Gastzugang wurde bewusst **keine** Registrierung vor der Nutzung verlangt: Ein
+"Demo ausprobieren"-Button loggt Besucher:innen direkt in einen gemeinsamen, automatisch
+bereitgestellten Demo-Account ein (`App\Actions\ProvisionDemoAccount` — die erste tatsächlich
+gebrauchte Klasse in `app/Actions/`, das Verzeichnis existierte bis dahin noch nicht, siehe
+Abschnitt 9 zur Backend-Struktur). Die Entscheidung für einen *gemeinsamen* statt eines
+*pro Besuch frisch erzeugten* Demo-Accounts wurde bewusst und dokumentiert getroffen: Da hinter
+den Modulen aktuell nur lesende Platzhalterseiten stehen (keine echten, veränderbaren
+Geschäftsdaten), können sich Besucher:innen aktuell nicht gegenseitig stören — sobald echte
+CRUD-Funktionalität existiert, ist eine session-isolierte Lösung der nächste Schritt (in
+`docs/authentication.md` als offener Punkt vermerkt, nicht stillschweigend ignoriert).

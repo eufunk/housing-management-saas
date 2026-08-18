@@ -34,23 +34,34 @@ plattformweites Problem). Alternative ohne Docker — PHP + PostgreSQL nativ in 
 Ohne Docker sowie weitere Befehle (Tests, Code-Style, ...): siehe
 [docs/development.md](docs/development.md).
 
+## Öffentlicher Zugang
+
+Die Startseite (`/`) ist für alle Besucher:innen erreichbar (kein internes Tool). Über
+**"Demo ausprobieren"** kann jede:r ohne Registrierung einen gemeinsamen Demo-Account nutzen —
+siehe [docs/authentication.md](docs/authentication.md#demo-login-gastzugang). Deployment auf
+[Laravel Cloud](https://cloud.laravel.com) ist vorbereitet, siehe
+[docs/deployment.md](docs/deployment.md).
+
 ## Dokumentation
 
 | Dokument                                             | Inhalt                                          |
 | ------------------------------------------------------- | -------------------------------------------------- |
 | [docs/architecture.md](docs/architecture.md)               | Stack-Entscheidungen, Backend-/Frontend-Konventionen |
 | [docs/database.md](docs/database.md)                         | Schema, Konventionen, Tabellenübersicht                |
-| [docs/authentication.md](docs/authentication.md)               | Auth-Flow                                                |
+| [docs/authentication.md](docs/authentication.md)               | Auth-Flow, Demo-/Gastzugang                              |
 | [docs/authorization.md](docs/authorization.md)                   | Rollen, Policies, Gates                                    |
 | [docs/multi-tenancy.md](docs/multi-tenancy.md)                     | Mandantenmodell und Isolationsstrategie                       |
 | [docs/development.md](docs/development.md)                           | Setup, Docker-Befehle, QA-Checks                                 |
-| [docs/project-journal.md](docs/project-journal.md)                     | Aufgabenstellung und Herangehensweise (Projektdoku)               |
-| [docs/glossar.md](docs/glossar.md)                                        | Glossar: Tech-Stack und Fachbegriffe erklärt                        |
+| [docs/deployment.md](docs/deployment.md)                                | Laravel Cloud, Gastzugang, Alternativen                             |
+| [docs/project-journal.md](docs/project-journal.md)                        | Aufgabenstellung und Herangehensweise (Projektdoku)                  |
+| [docs/glossar.md](docs/glossar.md)                                           | Glossar: Tech-Stack und Fachbegriffe erklärt                           |
 
 ## Rollen
 
 Super Admin (plattformweit) · Property Manager · Owner · Tenant · Contractor
-(organisationsgebunden) — siehe [docs/authorization.md](docs/authorization.md).
+(organisationsgebunden) — siehe [docs/authorization.md](docs/authorization.md). Öffentliche
+Besucher:innen können zusätzlich ohne Konto den Demo-Zugang nutzen (Rolle Property Manager im
+gemeinsamen Demo-Account).
 
 ## Projektstatus
 

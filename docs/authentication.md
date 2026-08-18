@@ -25,3 +25,24 @@ sehen aber mangels Organisation keine organisationsgebundenen Daten (siehe
 [multi-tenancy.md](multi-tenancy.md), Fail-Closed-Verhalten von `OrganizationScope`).
 
 Tests für den bestehenden Auth-Flow liegen unter `tests/Feature/Auth/`.
+
+## Demo-Login (Gastzugang)
+
+Für öffentlichen Zugang ohne Registrierung gibt es zusätzlich `App\Http\Controllers\Auth\
+DemoLoginController` (`POST /demo-login`, Route-Name `demo-login`, `guest`-Middleware +
+`throttle:10,1`). Er loggt Besucher:innen ohne Passwortabfrage in einen **einzigen, gemeinsam
+genutzten** Demo-Account ein, den `App\Actions\ProvisionDemoAccount` bei Bedarf automatisch
+anlegt (Organisation "Demo Hausverwaltung", Nutzer `demo@propertymanager.app`, Rolle
+`property_manager`) — idempotent: Existiert der Account bereits, wird er wiederverwendet;
+wurde er zwischenzeitlich gelöscht, wird er beim nächsten Klick automatisch neu angelegt
+("self-healing").
+
+**Bewusste Vereinfachung**: Der Demo-Account wird **nicht** pro Besuch neu/isoliert erzeugt,
+sondern von allen Gästen geteilt. Das ist unkritisch, solange keine echten,
+veränderbaren Geschäftsdaten hinter den Modulen stehen (aktuell nur EmptyState-Platzhalter,
+siehe [architecture.md](architecture.md)) — sobald echte CRUD-Funktionalität für die
+demonstrierten Module existiert, sollte auf eine Sitzung-isolierte Demo-Bereitstellung
+(z. B. pro Besuch ein frischer, nach Ablauf automatisch bereinigter Account) umgestellt werden.
+
+Der Button "Demo ausprobieren" befindet sich auf der öffentlichen Startseite
+(`resources/js/pages/Welcome.vue`).

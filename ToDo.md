@@ -205,6 +205,33 @@ Status-Legende: `[ ]` offen · `[~]` in Arbeit · `[x]` erledigt
         (ambiente Typdeklaration, kein expliziter Import nötig) verifiziert als tatsächlich genutzt
       - TypeScript, ESLint, Build und volle Pest-Suite (36/36) nach der Bereinigung erneut grün
 
+## 16. Öffentlicher Zugang, Gastzugang, Deployment (auf Nutzeranfrage)
+- [x] Echte öffentliche Startseite (`resources/js/pages/Welcome.vue`) für **alle** Besucher:innen
+      gebaut (Hero, Modul-Übersicht, Login/Registrieren/Demo-CTAs) — löst die frühere Entscheidung
+      ab, `/` direkt auf `/login` umzuleiten (galt nur unter der Annahme "rein internes Tool",
+      die der Nutzer korrigiert hat); `AppLogo.vue` zeigte zudem noch "Laravel Starter Kit" statt
+      des Produktnamens — mitkorrigiert (`page.props.name`)
+- [x] `/` rendert die Startseite für Gäste, leitet eingeloggte Nutzer automatisch zu `/dashboard`
+      weiter (`routes/web.php`)
+- [x] Demo-/Gastzugang ohne Registrierung: `App\Actions\ProvisionDemoAccount` (erste Klasse in
+      `app/Actions/`, siehe `docs/architecture.md`) + `DemoLoginController`
+      (`POST /demo-login`, `guest`-Middleware + `throttle:10,1`) — idempotenter, gemeinsam
+      genutzter Demo-Account (Organisation + Nutzer + Rolle Property Manager), self-healing bei
+      Löschung. Bewusste Vereinfachung (kein Account pro Besuch) dokumentiert in
+      `docs/authentication.md`, da noch keine mutierbaren Geschäftsdaten hinter den Modulen stehen
+- [x] Laravel Cloud als Deployment-Ziel vorbereitet (`docs/deployment.md`): Setup-Schritte,
+      Build-/Deploy-Befehle, Datenbank-/Redis-Ressourcen, Push-to-Deploy, Queue-/Scheduler-Hinweis,
+      Health-Check (`/up`, bereits vorhanden). Kein Config-File im Repo nötig — Laravel Cloud ist
+      vollständig dashboard-gesteuert; Alternativen (Railway/Render via bestehendem Dockerfile)
+      erwähnt
+- [x] Neue Tests: `tests/Feature/WelcomeTest.php` (Gast sieht Startseite, eingeloggter Nutzer wird
+      weitergeleitet), `tests/Feature/Auth/DemoLoginTest.php` (Demo-Login funktioniert, ist
+      idempotent, für eingeloggte Nutzer gesperrt) — `tests/Feature/ExampleTest.php` (Platzhalter
+      aus dem Laravel-Skeleton) durch `WelcomeTest.php` ersetzt
+- [x] Verifiziert: TypeScript, ESLint, Prettier, Build, Pint und volle Pest-Suite (40/40) grün;
+      kompletter Demo-Login-Flow zusätzlich end-to-end per curl gegen den laufenden Dev-Server
+      getestet (Startseite → Demo-Login → authentifiziertes Dashboard)
+
 ---
 
 ## Offene Punkte (bewusst nicht Teil dieser Grundstruktur)
