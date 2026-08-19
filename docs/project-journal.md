@@ -500,3 +500,55 @@ Dokumentation der Abweichung von der Aufgabenstellung direkt in
 als neuer Abschnitt 21 angehängt (Werkzeuge: `python-docx`, in WSL2 nachinstalliert, da weder
 `pip` noch das Paket vorher verfügbar waren), mit Begründung (ARM64-Docker-Desktop-Bug,
 Windows-Anwendungssteuerungsrichtlinie) und dem stattdessen verwendeten Werkzeug (WSL2).
+
+### 19. Buildings und Units: Phase 1 der Roadmap fortgesetzt
+
+Auf Nachfrage, was laut Roadmap als Nächstes ansteht, wurde zunächst `docs/roadmap.md` selbst
+nachgezogen (die Feature-Abgleich-Tabelle hatte den CRUD-Stand von Properties noch nicht
+vermerkt), bevor mit **Buildings** und **Units** — laut Roadmap die zweite Stufe innerhalb von
+Phase 1 — weitergemacht wurde. Beide folgen exakt dem mit Properties etablierten Muster
+(Policy, Store-/Update-Request mit organisationsscoped `Rule::exists()`, `authorizeResource()`,
+Inertia-Seiten mit Tabelle/Pagination/Lösch-Dialog), wodurch die Umsetzung diesmal ohne die
+Fehlschläge der ersten Runde durchlief — bis auf einen neuen: `Route::resource($uri, $controller,
+['as' => 'buildings'])` erzeugte `buildings.buildings.index` statt der erwarteten
+`buildings.index`, weil die `as`-Option in Laravels Resource-Options ein **Präfix** ist, keine
+Ersetzung des aus der URI abgeleiteten Namens. Alle 15 neuen Feature-Tests scheiterten dadurch
+zunächst mit `RouteNotFoundException`. Fix: `->names('buildings')` statt der Options-Array-Form —
+das ersetzt den Namen tatsächlich vollständig, wie ursprünglich beabsichtigt.
+
+Zwei Design-Entscheidungen mussten neu getroffen werden, weil Properties keine Vorlage dafür
+bot:
+
+- **`UnitStatus`-Enum**: Für `units.status` (bisher ein loses String-Feld mit DB-Default
+  `'vacant'`) wurde ein neues, String-backed `App\Enums\UnitStatus` angelegt (`Vacant`,
+  `Occupied`, `Maintenance`) und als Cast auf dem `Unit`-Model ergänzt — im selben Stil wie
+  `OrganizationRole`. Kein rein kosmetischer Schritt: ohne Cast hätte das Frontend rohe Strings
+  ohne Typsicherheit erhalten.
+- **Navigation**: Weder Buildings noch Units hatten je einen Sidebar-Eintrag — beide waren
+  (auch als EmptyState-Platzhalter) nur über die direkte URL erreichbar, da die Aufgabenstellung
+  nur 10 Top-Level-Module vorsah. Mit echtem CRUD wäre das ein Sackgassen-Feature gewesen. Da die
+  Sidebar-Primitiven für ausklappbare Untermenüs (`SidebarMenuSub` u. a.) im Starter-Kit bereits
+  vorhanden, aber ungenutzt waren, wurde `NavMain.vue` um optionale verschachtelte `items`
+  erweitert (`NavItem.items?: NavItem[]`) statt eine komplett neue Navigationskomponente zu
+  bauen — „Immobilien" ist jetzt aufklappbar zu Übersicht/Gebäude/Wohnungen.
+
+Zusätzlich zu den beiden CRUD-Feature-Test-Dateien (`BuildingCrudTest`, `UnitCrudTest`) wurden —
+anders als bei Properties, wo das nachträglich auffiel — von Anfang an auch dedizierte
+Policy-Tests angelegt (`BuildingPolicyTest`, `UnitPolicyTest`), die die mehrstufige
+Eigentümer-Kette direkt prüfen (`Unit → Building → Property → Owner`), da diese Verkettung
+subtiler ist als der direkte `Property → Owner`-Bezug und eine eigene Absicherung verdient.
+
+Ergebnis: 72 Tests grün (vorher 47), `vue-tsc`/`eslint`/`prettier`/Pint sauber, Produktions-Build
+erfolgreich.
+
+Auf Nachfrage wurden die zunächst bewusst weggelassenen Demo-Seed-Daten für Buildings/Units doch
+nachgezogen: `DemoPropertySeeder` wurde erweitert (nicht durch einen neuen Seeder ersetzt, da
+Gebäude/Wohnungen ohnehin an die dort bereits erzeugten Immobilien hängen) um 9 Gebäude und 25
+Wohnungen für 6 der 20 Immobilien — bewusst nicht für alle 20, um nicht Hunderte Zeilen zu
+seeden, die niemand ansieht, aber genug, um Pagination (Wohnungsliste: 15 pro Seite) und alle
+drei `UnitStatus`-Werte im selben Datensatz zu zeigen (14 vermietet, 8 Leerstand, 3 in
+Renovierung). Wie bei `Property::firstOrCreate()`, hier `Building::firstOrCreate()`/
+`Unit::firstOrCreate()` für Idempotenz — verifiziert durch zweimaliges Ausführen ohne
+Zeilenzuwachs. Passend dazu `docs/testing/buildings.md` und `docs/testing/units.md` angelegt
+(gleiches Format wie `docs/testing/properties.md`), und deren Einleitung aktualisiert, da
+Buildings/Units nicht mehr zu den „noch ausstehenden" Modulen zählen.

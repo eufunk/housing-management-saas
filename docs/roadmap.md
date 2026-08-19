@@ -26,7 +26,7 @@ fremden Website.
 
 | Bei Riebeling beobachtet          | Entsprechung in diesem Projekt                          | Status                       |
 | ----------------------------------- | ---------------------------------------------------------- | ------------------------------- |
-| Immobilienverwaltung                  | `properties` / `buildings` / `units`                          | Datenmodell fertig, kein CRUD     |
+| Immobilienverwaltung                  | `properties` / `buildings` / `units`                          | **CRUD fertig** (alle drei)     |
 | Mieterverwaltung                        | `tenants`                                                        | Datenmodell fertig, kein CRUD       |
 | Mietverträge                              | `leases`                                                           | Datenmodell fertig, kein CRUD         |
 | Schadens-/Mängelmeldung mit Fotos            | `maintenance_requests` + `documents` (polymorph)                    | Datenmodell fertig, kein CRUD           |
@@ -55,8 +55,9 @@ gleichzeitig halbfertig zu bauen.
 ### Phase 1 — Stammdaten (Fundament für alles Weitere)
 Echtes CRUD für `Properties` → `Buildings` → `Units`, `Owners`, `Tenants`, `Contractors`.
 Ohne diese Basis lässt sich kein anderes Modul sinnvoll befüllen oder testen. Reihenfolge
-innerhalb der Phase: Properties zuerst (alles hängt daran), dann Buildings/Units, dann Personen
-(Owners/Tenants/Contractors) parallel.
+innerhalb der Phase: Properties zuerst (alles hängt daran) — **fertig** —, dann Buildings/Units
+— **fertig**, siehe `docs/project-journal.md` Abschnitt 17/19 —, dann Personen
+(Owners/Tenants/Contractors) parallel, noch offen.
 
 ### Phase 2 — Mietverträge
 Echtes CRUD für `Leases`, verknüpft mit Units und Tenants. Voraussetzung für Phase 3 und 4
