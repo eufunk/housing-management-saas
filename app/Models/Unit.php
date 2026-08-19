@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UnitStatus;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,6 +28,7 @@ class Unit extends Model
     {
         return [
             'size_sqm' => 'decimal:2',
+            'status' => UnitStatus::class,
         ];
     }
 

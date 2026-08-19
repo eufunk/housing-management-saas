@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -18,12 +20,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    // Placeholder landing pages for the main sidebar modules. These render an
-    // EmptyState until the corresponding feature is implemented; wiring real
-    // data replaces the Inertia::render calls without touching the routes.
     Route::resource('properties', PropertyController::class)->except('show');
-    Route::inertia('properties/buildings', 'Buildings/Index')->name('buildings.index');
-    Route::inertia('properties/units', 'Units/Index')->name('units.index');
+    Route::resource('properties/buildings', BuildingController::class)->except('show')->names('buildings');
+    Route::resource('properties/units', UnitController::class)->except('show')->names('units');
+
+    // Placeholder landing pages for the remaining sidebar modules. These
+    // render an EmptyState until the corresponding feature is implemented;
+    // wiring real data replaces the Inertia::render calls without touching
+    // the routes.
     Route::inertia('tenants', 'Tenants/Index')->name('tenants.index');
     Route::inertia('owners', 'Owners/Index')->name('owners.index');
     Route::inertia('leases', 'Leases/Index')->name('leases.index');

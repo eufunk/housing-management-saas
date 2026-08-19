@@ -2,16 +2,20 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UnitStatus;
+use App\Models\Building;
 use App\Models\Organization;
 use App\Models\Owner;
 use App\Models\Property;
+use App\Models\Unit;
 use Illuminate\Database\Seeder;
 
 /**
  * Fills the shared demo organization (see ProvisionDemoAccount) with
- * realistic example properties so the "Demo ausprobieren" flow has
- * something to look at beyond an empty list. Idempotent — safe to run
- * repeatedly, matches existing rows by name/email instead of duplicating.
+ * realistic example properties, buildings and units so the "Demo
+ * ausprobieren" flow has something to look at beyond an empty list.
+ * Idempotent — safe to run repeatedly, matches existing rows by
+ * name/email/unit number instead of duplicating.
  *
  * Run with: php artisan db:seed --class=DemoPropertySeeder
  */
@@ -58,8 +62,8 @@ class DemoPropertySeeder extends Seeder
             ['name' => 'Stadtvilla Klosterberg', 'street' => 'Klosterberg 6', 'postal_code' => '39104', 'city' => 'Magdeburg', 'owner' => 2],
         ];
 
-        foreach ($properties as $data) {
-            Property::firstOrCreate(
+        $createdProperties = collect($properties)->mapWithKeys(function (array $data) use ($organization, $owners) {
+            $property = Property::firstOrCreate(
                 ['organization_id' => $organization->id, 'name' => $data['name']],
                 [
                     'owner_id' => $data['owner'] !== null ? $owners[$data['owner']]->id : null,
@@ -69,6 +73,104 @@ class DemoPropertySeeder extends Seeder
                     'country' => 'DE',
                 ],
             );
+
+            return [$data['name'] => $property];
+        });
+
+        // Only a subset of properties gets buildings/units — enough to
+        // exercise pagination and every unit status, without seeding
+        // hundreds of rows nobody will look at.
+        $buildings = [
+            'Wohnanlage Sonnenhof' => [
+                ['name' => 'Haus A', 'floors' => 5],
+                ['name' => 'Haus B', 'floors' => 4],
+            ],
+            'Mehrfamilienhaus Kastanienweg' => [
+                ['name' => 'Haus 1', 'floors' => 4],
+            ],
+            'Wohnpark Rheinblick' => [
+                ['name' => 'Block 1', 'floors' => 6],
+                ['name' => 'Block 2', 'floors' => 6],
+            ],
+            'Mehrfamilienhaus Bergstraße 5' => [
+                ['name' => 'Haupthaus', 'floors' => 3],
+            ],
+            'Wohnanlage Lindenpark' => [
+                ['name' => 'Gebäude A', 'floors' => 5],
+            ],
+            'Altbauensemble Musterstraße' => [
+                ['name' => 'Vorderhaus', 'floors' => 4],
+                ['name' => 'Hinterhaus', 'floors' => 3],
+            ],
+        ];
+
+        $units = [
+            'Haus A' => [
+                ['unit_number' => '101', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 54.5, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '102', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 71.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '201', 'floor' => 2, 'rooms' => 2, 'size_sqm' => 55.0, 'status' => UnitStatus::Vacant],
+                ['unit_number' => '202', 'floor' => 2, 'rooms' => 3, 'size_sqm' => 70.5, 'status' => UnitStatus::Occupied],
+            ],
+            'Haus B' => [
+                ['unit_number' => '101', 'floor' => 1, 'rooms' => 1, 'size_sqm' => 38.0, 'status' => UnitStatus::Vacant],
+                ['unit_number' => '102', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 82.0, 'status' => UnitStatus::Occupied],
+            ],
+            'Haus 1' => [
+                ['unit_number' => '1', 'floor' => 0, 'rooms' => 2, 'size_sqm' => 48.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '2', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 65.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '3', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 50.0, 'status' => UnitStatus::Maintenance],
+                ['unit_number' => '4', 'floor' => 2, 'rooms' => 4, 'size_sqm' => 90.0, 'status' => UnitStatus::Vacant],
+            ],
+            'Block 1' => [
+                ['unit_number' => '101', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 60.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '102', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 78.0, 'status' => UnitStatus::Vacant],
+                ['unit_number' => '201', 'floor' => 2, 'rooms' => 2, 'size_sqm' => 61.0, 'status' => UnitStatus::Occupied],
+            ],
+            'Block 2' => [
+                ['unit_number' => '101', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 79.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '102', 'floor' => 1, 'rooms' => 1, 'size_sqm' => 35.0, 'status' => UnitStatus::Vacant],
+            ],
+            'Haupthaus' => [
+                ['unit_number' => '1', 'floor' => 0, 'rooms' => 4, 'size_sqm' => 95.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '2', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 52.0, 'status' => UnitStatus::Vacant],
+                ['unit_number' => '3', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 68.0, 'status' => UnitStatus::Maintenance],
+            ],
+            'Gebäude A' => [
+                ['unit_number' => '101', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 58.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '102', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 59.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '201', 'floor' => 2, 'rooms' => 3, 'size_sqm' => 74.0, 'status' => UnitStatus::Vacant],
+            ],
+            'Vorderhaus' => [
+                ['unit_number' => '1', 'floor' => 1, 'rooms' => 4, 'size_sqm' => 110.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '2', 'floor' => 2, 'rooms' => 3, 'size_sqm' => 85.0, 'status' => UnitStatus::Vacant],
+            ],
+            'Hinterhaus' => [
+                ['unit_number' => '1', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 45.0, 'status' => UnitStatus::Maintenance],
+                ['unit_number' => '2', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 46.0, 'status' => UnitStatus::Occupied],
+            ],
+        ];
+
+        foreach ($buildings as $propertyName => $buildingsForProperty) {
+            $property = $createdProperties[$propertyName];
+
+            foreach ($buildingsForProperty as $buildingData) {
+                $building = Building::firstOrCreate(
+                    ['organization_id' => $organization->id, 'property_id' => $property->id, 'name' => $buildingData['name']],
+                    ['floors' => $buildingData['floors']],
+                );
+
+                foreach ($units[$buildingData['name']] ?? [] as $unitData) {
+                    Unit::firstOrCreate(
+                        ['organization_id' => $organization->id, 'building_id' => $building->id, 'unit_number' => $unitData['unit_number']],
+                        [
+                            'floor' => $unitData['floor'],
+                            'rooms' => $unitData['rooms'],
+                            'size_sqm' => $unitData['size_sqm'],
+                            'status' => $unitData['status'],
+                        ],
+                    );
+                }
+            }
         }
     }
 }

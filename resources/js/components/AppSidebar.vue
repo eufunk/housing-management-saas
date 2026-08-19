@@ -10,7 +10,16 @@ import NavFooter from './NavFooter.vue';
 
 const mainNavItems: NavItem[] = [
     { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
-    { title: 'Immobilien', href: '/properties', icon: Building2 },
+    {
+        title: 'Immobilien',
+        href: '/properties',
+        icon: Building2,
+        items: [
+            { title: 'Übersicht', href: '/properties' },
+            { title: 'Gebäude', href: '/properties/buildings' },
+            { title: 'Wohnungen', href: '/properties/units' },
+        ],
+    },
     { title: 'Mieter', href: '/tenants', icon: Users },
     { title: 'Eigentümer', href: '/owners', icon: UserCheck },
     { title: 'Verträge', href: '/leases', icon: FileText },
