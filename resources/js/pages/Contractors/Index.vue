@@ -7,14 +7,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2, UserCheck } from 'lucide-vue-next';
+import { Pencil, Plus, Trash2, Wrench } from 'lucide-vue-next';
 import { ref } from 'vue';
 
-interface OwnerRecord {
+interface ContractorRecord {
     ulid: string;
-    name: string;
+    company_name: string;
+    contact_name: string | null;
     email: string | null;
     phone: string | null;
+    specialty: string | null;
 }
 
 interface PaginationLink {
@@ -24,56 +26,59 @@ interface PaginationLink {
 }
 
 defineProps<{
-    owners: {
-        data: OwnerRecord[];
+    contractors: {
+        data: ContractorRecord[];
         links: PaginationLink[];
     };
 }>();
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Eigentümer', href: '/owners' }];
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Reparaturen', href: '/maintenance' },
+    { title: 'Handwerker', href: '/contractors' },
+];
 
-const ownerPendingDeletion = ref<OwnerRecord | null>(null);
+const contractorPendingDeletion = ref<ContractorRecord | null>(null);
 
-const confirmDelete = (owner: OwnerRecord) => {
-    ownerPendingDeletion.value = owner;
+const confirmDelete = (contractor: ContractorRecord) => {
+    contractorPendingDeletion.value = contractor;
 };
 
 const destroy = () => {
-    if (!ownerPendingDeletion.value) {
+    if (!contractorPendingDeletion.value) {
         return;
     }
 
-    router.delete(route('owners.destroy', [ownerPendingDeletion.value.ulid]), {
+    router.delete(route('contractors.destroy', [contractorPendingDeletion.value.ulid]), {
         preserveScroll: true,
         onFinish: () => {
-            ownerPendingDeletion.value = null;
+            contractorPendingDeletion.value = null;
         },
     });
 };
 </script>
 
 <template>
-    <Head title="Eigentümer" />
+    <Head title="Handwerker" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div class="flex items-center justify-between">
-                <h1 class="text-lg font-semibold">Eigentümer</h1>
+                <h1 class="text-lg font-semibold">Handwerker</h1>
                 <Button as-child>
-                    <Link :href="route('owners.create')">
+                    <Link :href="route('contractors.create')">
                         <Plus class="size-4" />
-                        Eigentümer hinzufügen
+                        Handwerker hinzufügen
                     </Link>
                 </Button>
             </div>
 
             <EmptyState
-                v-if="owners.data.length === 0"
-                :icon="UserCheck"
-                title="Noch keine Eigentümer"
-                description="Legen Sie einen Eigentümer an, um ihn später Immobilien zuzuordnen."
+                v-if="contractors.data.length === 0"
+                :icon="Wrench"
+                title="Noch keine Handwerker"
+                description="Legen Sie einen Handwerksbetrieb an, um ihn später Reparaturaufträgen zuzuordnen."
             >
                 <Button as-child>
-                    <Link :href="route('owners.create')">Eigentümer hinzufügen</Link>
+                    <Link :href="route('contractors.create')">Handwerker hinzufügen</Link>
                 </Button>
             </EmptyState>
 
@@ -82,26 +87,28 @@ const destroy = () => {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>E-Mail</TableHead>
-                                <TableHead>Telefon</TableHead>
+                                <TableHead>Firma</TableHead>
+                                <TableHead>Ansprechpartner</TableHead>
+                                <TableHead>Kontakt</TableHead>
+                                <TableHead>Fachgebiet</TableHead>
                                 <TableHead class="w-0"><span class="sr-only">Aktionen</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="owner in owners.data" :key="owner.ulid">
-                                <TableCell class="font-medium">{{ owner.name }}</TableCell>
-                                <TableCell>{{ owner.email ?? '—' }}</TableCell>
-                                <TableCell>{{ owner.phone ?? '—' }}</TableCell>
+                            <TableRow v-for="contractor in contractors.data" :key="contractor.ulid">
+                                <TableCell class="font-medium">{{ contractor.company_name }}</TableCell>
+                                <TableCell>{{ contractor.contact_name ?? '—' }}</TableCell>
+                                <TableCell>{{ contractor.email ?? contractor.phone ?? '—' }}</TableCell>
+                                <TableCell>{{ contractor.specialty ?? '—' }}</TableCell>
                                 <TableCell>
                                     <div class="flex justify-end gap-1">
                                         <Button as-child variant="ghost" size="sm">
-                                            <Link :href="route('owners.edit', [owner.ulid])">
+                                            <Link :href="route('contractors.edit', [contractor.ulid])">
                                                 <Pencil class="size-4" />
                                                 <span class="sr-only">Bearbeiten</span>
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" size="sm" @click="confirmDelete(owner)">
+                                        <Button variant="ghost" size="sm" @click="confirmDelete(contractor)">
                                             <Trash2 class="size-4" />
                                             <span class="sr-only">Löschen</span>
                                         </Button>
@@ -112,16 +119,16 @@ const destroy = () => {
                     </Table>
                 </div>
 
-                <Pagination :links="owners.links" />
+                <Pagination :links="contractors.links" />
             </template>
         </div>
 
-        <Dialog :open="ownerPendingDeletion !== null" @update:open="(open) => !open && (ownerPendingDeletion = null)">
+        <Dialog :open="contractorPendingDeletion !== null" @update:open="(open) => !open && (contractorPendingDeletion = null)">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Eigentümer löschen?</DialogTitle>
+                    <DialogTitle>Handwerker löschen?</DialogTitle>
                     <DialogDescription>
-                        „{{ ownerPendingDeletion?.name }}" wird gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.
+                        „{{ contractorPendingDeletion?.company_name }}" wird gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

@@ -7,9 +7,9 @@ denselben Funktionsumfang zusätzlich manuell über die tatsächliche Benutzerob
 Browser, inklusive visueller/interaktiver Aspekte (Dropdown-Verhalten, Bestätigungsdialog,
 Pagination-Optik), die automatisierte Tests nicht abdecken.
 
-Weitere Module (Owners, Tenants, Contractors, ...) bekommen eigene Dateien in diesem Ordner,
-sobald ihr CRUD implementiert ist — siehe bereits [buildings.md](buildings.md) und
-[units.md](units.md).
+Weitere Module bekommen eigene Dateien in diesem Ordner, sobald ihr CRUD implementiert ist —
+siehe bereits [buildings.md](buildings.md), [units.md](units.md), [owners.md](owners.md),
+[tenants.md](tenants.md) und [contractors.md](contractors.md).
 
 ## Voraussetzungen
 

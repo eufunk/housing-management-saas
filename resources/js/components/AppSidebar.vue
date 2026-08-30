@@ -24,7 +24,15 @@ const mainNavItems: NavItem[] = [
     { title: 'Eigentümer', href: '/owners', icon: UserCheck },
     { title: 'Verträge', href: '/leases', icon: FileText },
     { title: 'Finanzen', href: '/payments', icon: Wallet },
-    { title: 'Reparaturen', href: '/maintenance', icon: Wrench },
+    {
+        title: 'Reparaturen',
+        href: '/maintenance',
+        icon: Wrench,
+        items: [
+            { title: 'Übersicht', href: '/maintenance' },
+            { title: 'Handwerker', href: '/contractors' },
+        ],
+    },
     { title: 'Dokumente', href: '/documents', icon: FolderOpen },
     { title: 'Termine', href: '/appointments', icon: Calendar },
     { title: 'Benachrichtigungen', href: '/notifications', icon: Bell },
