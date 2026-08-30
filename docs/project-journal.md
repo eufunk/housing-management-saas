@@ -552,3 +552,42 @@ Renovierung). Wie bei `Property::firstOrCreate()`, hier `Building::firstOrCreate
 Zeilenzuwachs. Passend dazu `docs/testing/buildings.md` und `docs/testing/units.md` angelegt
 (gleiches Format wie `docs/testing/properties.md`), und deren Einleitung aktualisiert, da
 Buildings/Units nicht mehr zu den „noch ausstehenden" Modulen zählen.
+
+### 20. Owners, Tenants, Contractors: Phase 1 abgeschlossen
+
+Letzte Stufe von Phase 1 — laut Roadmap parallel, da die drei "Personen"-Module keine
+Abhängigkeit untereinander haben. Anders als bei Buildings/Units gibt es hier keine
+Eltern-Kind-Beziehung zu einer anderen Stammdaten-Entität: Owner/Tenant/Contractor sind
+eigenständige Datensätze, die erst in späteren Phasen (Verträge, Reparaturen) mit anderen
+Modulen verknüpft werden. Die CRUD-Formulare sind entsprechend einfacher als bei Properties/
+Buildings/Units — kein Eltern-Dropdown nötig, nur Name/Kontaktdaten (bei Contractor zusätzlich
+Firma/Fachgebiet).
+
+Eine bewusste Abgrenzung: Alle drei Models haben ein nullable `user_id`, über das ein
+Eigentümer/Mieter/Handwerker später mit einem echten Login-Account verknüpft werden kann (Basis
+für das in der Roadmap erwähnte Eigentümerportal, Phase 5). Dieses Feld wurde **nicht** Teil der
+Create-/Edit-Formulare — es "jemandem Portal-Zugang geben" ist ein eigenständiges,
+sicherheitsrelevantes Feature (Einladung, Passwortvergabe, Rollenprüfung), das eine eigene
+Entscheidung verdient, keine Nebenwirkung von einfachem Stammdaten-CRUD. Bis dahin bleibt
+`user_id` nur maschinell setzbar.
+
+Die Policies folgen dem etablierten Muster, mit einer neuen Variante: Statt wie bei
+Property/Building/Unit über eine mehrstufige Beziehung zu prüfen ("gehört dieses Objekt zu einem
+Owner, dessen `user_id` mir gehört?"), prüft z. B. `OwnerPolicy::view()` direkt
+`$owner->user_id === $user->id` — ein Owner/Tenant/Contractor darf sein *eigenes* Profil sehen,
+sonst nichts verwalten. Einfacher als die Buildings/Units-Ketten, aber aus demselben
+Rollenkonzept abgeleitet.
+
+Navigations-Lücke wie schon bei Buildings/Units: Für `Contractors` gab es bisher **weder Route
+noch Sidebar-Eintrag noch Platzhalterseite** — die ursprünglichen 10 Sidebar-Module aus der
+Aufgabenstellung sahen "Handwerker" gar nicht als Top-Level-Punkt vor. Da Handwerker inhaltlich
+am engsten mit dem Reparatur-Workflow (Phase 3) zusammenhängen, wurde „Handwerker" als
+Untermenüpunkt von „Reparaturen" ergänzt (gleiches Muster wie „Gebäude"/„Wohnungen" unter
+„Immobilien") statt einen elften Top-Level-Punkt einzuführen. `Owners`/`Tenants` hatten dagegen
+bereits eigene Top-Level-Sidebar-Einträge und Platzhalterrouten — dort wurden nur die
+`Route::inertia()`-Platzhalter durch `Route::resource()` ersetzt.
+
+30 neue Tests (drei CRUD-Suiten + drei Policy-Suiten), alle grün zusammen mit den bestehenden
+72. Damit ist **Phase 1 der Roadmap vollständig abgeschlossen**: Properties, Buildings, Units,
+Owners, Tenants, Contractors haben alle echtes CRUD. `docs/roadmap.md` entsprechend aktualisiert
+(Phase 1 als „abgeschlossen" markiert). Nächster Schritt laut Roadmap: Phase 2 (Mietverträge).

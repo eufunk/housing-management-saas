@@ -27,13 +27,13 @@ fremden Website.
 | Bei Riebeling beobachtet          | Entsprechung in diesem Projekt                          | Status                       |
 | ----------------------------------- | ---------------------------------------------------------- | ------------------------------- |
 | Immobilienverwaltung                  | `properties` / `buildings` / `units`                          | **CRUD fertig** (alle drei)     |
-| Mieterverwaltung                        | `tenants`                                                        | Datenmodell fertig, kein CRUD       |
+| Mieterverwaltung                        | `tenants`                                                        | **CRUD fertig**       |
 | Mietverträge                              | `leases`                                                           | Datenmodell fertig, kein CRUD         |
 | Schadens-/Mängelmeldung mit Fotos            | `maintenance_requests` + `documents` (polymorph)                    | Datenmodell fertig, kein CRUD           |
 | Vorgangsnummer/Ticketsystem                    | `maintenance_requests.ulid`                                            | Vorhanden, aber nicht als lesbare Nummer formatiert |
-| Handwerker/Objektbetreuung                        | `contractors` (inkl. `specialty`-Feld)                                    | Datenmodell fertig, kein CRUD               |
+| Handwerker/Objektbetreuung                        | `contractors` (inkl. `specialty`-Feld)                                    | **CRUD fertig**               |
 | Dokumente                                            | `documents` / `document_categories`                                          | Datenmodell fertig, kein CRUD                 |
-| Eigentümerverwaltung                                    | `owners`                                                                        | Datenmodell fertig, kein CRUD                   |
+| Eigentümerverwaltung                                    | `owners`                                                                        | **CRUD fertig**                   |
 | Finanzinformationen                                        | `payments` / `invoices` / `expenses`                                              | Datenmodell fertig, kein CRUD                     |
 | Eigentümer-Reporting                                          | Dashboard (aktuell nur Mock-Daten)                                                  | Noch nicht begonnen                                 |
 | Benachrichtigungen                                               | `activity_logs`, Sidebar-Modul "Benachrichtigungen"                                    | Datenmodell/Platzhalter vorhanden, keine Logik        |
@@ -52,12 +52,12 @@ Vorschlag zur Priorisierung der nächsten Implementierungsschritte — jede Phas
 vorherigen auf und liefert für sich einen nutzbaren Zwischenstand, statt in Breite alle Module
 gleichzeitig halbfertig zu bauen.
 
-### Phase 1 — Stammdaten (Fundament für alles Weitere)
+### Phase 1 — Stammdaten (Fundament für alles Weitere) — **abgeschlossen**
 Echtes CRUD für `Properties` → `Buildings` → `Units`, `Owners`, `Tenants`, `Contractors`.
-Ohne diese Basis lässt sich kein anderes Modul sinnvoll befüllen oder testen. Reihenfolge
-innerhalb der Phase: Properties zuerst (alles hängt daran) — **fertig** —, dann Buildings/Units
-— **fertig**, siehe `docs/project-journal.md` Abschnitt 17/19 —, dann Personen
-(Owners/Tenants/Contractors) parallel, noch offen.
+Ohne diese Basis lässt sich kein anderes Modul sinnvoll befüllen oder testen. Alle sechs Module
+haben jetzt echtes CRUD (Properties/Buildings/Units zuerst, dann Owners/Tenants/Contractors
+parallel, wie geplant) — siehe `docs/project-journal.md` Abschnitt 17/19/20. Damit ist die
+Grundlage für Phase 2 (Mietverträge verknüpfen Units und Tenants) gelegt.
 
 ### Phase 2 — Mietverträge
 Echtes CRUD für `Leases`, verknüpft mit Units und Tenants. Voraussetzung für Phase 3 und 4
