@@ -57,6 +57,7 @@ weiterhin ausschließlich für die öffentliche Bereitstellung auf Render, siehe
 | [docs/project-journal.md](docs/project-journal.md)                        | Aufgabenstellung und Herangehensweise (Projektdoku)                  |
 | [docs/glossar.md](docs/glossar.md)                                           | Glossar: Tech-Stack und Fachbegriffe erklärt                           |
 | [docs/roadmap.md](docs/roadmap.md)                                              | Produkt-Roadmap: priorisierte nächste Implementierungsschritte            |
+| [docs/status.md](docs/status.md)                                                    | Status-Snapshot gegenüber dem ursprünglichen 17-Phasen-Plan                  |
 | [docs/testing/](docs/testing/)                                                     | Manuelle UI-Testfälle pro Modul (z. B. Immobilien)                          |
 
 ## Rollen
@@ -68,4 +69,6 @@ gemeinsamen Demo-Account).
 
 ## Projektstatus
 
-Siehe [ToDo.md](ToDo.md) für den aktuellen Umsetzungsstand der Grundstruktur.
+Siehe [ToDo.md](ToDo.md) für den Umsetzungsstand der Grundstruktur und
+[docs/status.md](docs/status.md) für den aktuellen Fachlogik-Fortschritt gegenüber dem
+ursprünglichen 17-Phasen-Plan.

@@ -591,3 +591,76 @@ bereits eigene Top-Level-Sidebar-Einträge und Platzhalterrouten — dort wurden
 72. Damit ist **Phase 1 der Roadmap vollständig abgeschlossen**: Properties, Buildings, Units,
 Owners, Tenants, Contractors haben alle echtes CRUD. `docs/roadmap.md` entsprechend aktualisiert
 (Phase 1 als „abgeschlossen" markiert). Nächster Schritt laut Roadmap: Phase 2 (Mietverträge).
+
+### 21. Abgleich mit dem ursprünglichen 17-Phasen-Plan (Prompts.docx)
+
+Der Nutzer bat darum, `Aufgabenstellung/Prompts.docx` — ein zuvor ins Repo aufgenommenes, aber
+inhaltlich noch nicht ausgewertetes Dokument — vollständig zu lesen und mit dem tatsächlichen
+Umsetzungsstand abzugleichen. Das Dokument stellte sich als weit detaillierterer Plan heraus als
+die tatsächlich verwendete Aufgabenstellung: 17 Phasen von Produktanalyse über Architektur,
+Datenbank, Auth/Multi-Tenancy bis zu jedem einzelnen Fachmodul, KI-Funktionen, Billing und
+Production Readiness — inklusive einer expliziten Phase 01, die reine Planungsdokumente verlangt
+(`product-overview.md`, `requirements.md`, `use-cases.md`, `business-processes.md`,
+`docs/decisions/`), bevor überhaupt Code geschrieben werden soll.
+
+Zentraler Befund: Dieser Plan wurde **strukturell nie verwendet**. Tatsächlich gestartet wurde
+mit der anderen, direkteren Aufgabenstellung (`PropertyManager SaaS Grundstruktur.docx`), die
+Produktrahmen und sofortigen Vollaufbau in einem Schritt kombinierte — die vier
+Planungsdokumente aus Phase 01 existieren dadurch gar nicht, `docs/roadmap.md` entstand später
+aus einer Konkurrenzanalyse statt aus dieser Vorlage.
+
+Für den phasenweisen Abgleich wurde `Prompts.docx` komplett mit `python-docx` ausgelesen (WSL2
+war zu diesem Zeitpunkt bereits instabil, daher nativ unter Windows-Python installiert statt in
+WSL2) und paragraph-genau mit dem Code verglichen. Ergebnis: 10 konkrete Abweichungen gefunden
+und **direkt im Originaldokument** als Anmerkungen eingefügt (nicht nur in `docs/`, da der
+Nutzer das explizit so wollte) — u. a. fehlende `rooms`/`parking_spaces`-Tabellen, kein
+Organization-Switcher, keine Property-Detailseite, kein Einheiten-Typ, keine Suche/Filter, keine
+Show-Seiten für Owners/Tenants. Zusätzlich `docs/status.md` als kompakte, lebende
+Status-Übersicht angelegt (Ablageort auf Nachfrage mit dem Nutzer abgestimmt: eigenes Dokument
+statt Journal-Eintrag oder docx-interne Zusammenfassung) — die docx trägt die ausführliche
+Begründung je Einzelfall, `status.md` die Tabelle für den schnellen Überblick.
+
+### 22. Phase 06/07-Lücken nachgeholt
+
+Auf Basis von Abschnitt 21 bat der Nutzer, die Lücken in Phase 06 (Immobilienverwaltung) und 07
+(Eigentümer & Mieter) zu schließen. Umgesetzt:
+
+- **`App\Enums\UnitType`** (Wohnung/Gewerbeeinheit/Stellplatz/Sonstige) als neue `type`-Spalte
+  auf `units` — per neuer Migration ergänzt, nicht die ursprüngliche verändert (die war bereits
+  angewendet). Bestehende Tests, die `type` nicht mitschickten, mussten angepasst werden, da das
+  Feld in der Store-Validierung als `required` definiert wurde (fachlich bewusst, jede Einheit
+  soll klassifiziert sein) statt `nullable` — hätte man `nullable` gewählt, wären die alten
+  Tests unverändert grün geblieben, aber das hätte dem eigentlichen Zweck des Felds
+  widersprochen.
+- **Suche/Filter**: neuer Composable `useListSearch` (debounced, 300ms) für Properties,
+  Buildings, Units, Owners, Tenants; Units zusätzlich mit Status-Filter. Bewusst *nicht* für
+  Contractors (war nie Teil der Phase-06/07-Lücken, gehört laut `Prompts.docx` zu Phase 10).
+- **Show-Seiten** für Properties, Owners, Tenants — neue, wiederverwendbare Tabs-Komponente
+  (`resources/js/components/ui/tabs/`, radix-vue `TabsRoot` u. a. waren im Projekt bereits
+  verfügbar, aber ungenutzt, gleiches Muster wie zuvor bei `SidebarMenuSub` für die
+  Navigations-Verschachtelung). Property-Show zeigt echte Gebäude/Einheiten-Daten; die
+  Owner-/Tenant-Show-Seiten haben Platzhalter-Tabs für Module, die noch nicht existieren
+  (Verträge, Finanzen, Reparaturen, Dokumente).
+- Alle 10 Anmerkungen aus Abschnitt 21 in `Prompts.docx` blieben unverändert stehen; die vier
+  jetzt geschlossenen Lücken bekamen je eine zusätzliche „✅ Nachtrag"-Anmerkung direkt darunter
+  statt einer Überschreibung — damit bleibt nachvollziehbar, was ursprünglich fehlte und wann es
+  nachgezogen wurde. `docs/status.md` entsprechend aktualisiert (Phase 06/07 von „teilweise" auf
+  „weitgehend erledigt").
+
+Ein Routing-Bug kam beim Testen zum Vorschein: `Route::resource('properties', ...)` (jetzt mit
+`show`) muss **vor** der Registrierung nach `properties/buildings`/`properties/units` stehen —
+vorher registriert, hätte `properties/{property}` (Show-Route) `GET /properties/buildings`
+abgefangen und „buildings" als ULID-Parameter interpretiert, mit 404 als Folge (keine Property
+mit dieser ULID). In `routes/web.php` durch Umsortieren behoben, mit Kommentar zur Erklärung.
+
+Nebenbei: Der Rechner des Nutzers hing während dieser Sitzung mehrfach in einem defekten
+WSL2-Zustand fest (`wsl --shutdown` blockierte dauerhaft, `vmmemWSL` ließ sich selbst mit
+Admin-Rechten nicht per `Stop-Process`/`taskkill` beenden — ein bekannter Hyper-V-Schutzmechanismus
+für VM-Worker-Prozesse). Erst ein vollständiger Windows-Neustart hat das behoben. Kein
+Software-Problem dieses Projekts, aber als Erfahrungswert festgehalten, falls es erneut
+auftritt: WSL2-Prozesse zuerst normal beenden (`Get-Process wsl | Stop-Process -Force`), bei
+weiterhin laufendem `vmmemWSL` nicht länger versuchen, es gewaltsam zu beenden, sondern direkt
+neu starten.
+
+Ergebnis: 120/120 Tests grün (vorher 108), Pint sauber (145 Dateien), Produktions-Build
+erfolgreich.
