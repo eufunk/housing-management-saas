@@ -3,11 +3,13 @@ import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useListSearch } from '@/composables/useListSearch';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2, UserCheck } from 'lucide-vue-next';
+import { Pencil, Plus, Search, Trash2, UserCheck } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 interface OwnerRecord {
@@ -23,14 +25,17 @@ interface PaginationLink {
     active: boolean;
 }
 
-defineProps<{
+const props = defineProps<{
     owners: {
         data: OwnerRecord[];
         links: PaginationLink[];
     };
+    filters: { search: string | null };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Eigentümer', href: '/owners' }];
+
+const { search } = useListSearch('owners.index', props.filters.search);
 
 const ownerPendingDeletion = ref<OwnerRecord | null>(null);
 
@@ -66,8 +71,13 @@ const destroy = () => {
                 </Button>
             </div>
 
+            <div class="relative max-w-sm">
+                <Search class="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input v-model="search" placeholder="Suche nach Name, E-Mail…" class="pl-8" />
+            </div>
+
             <EmptyState
-                v-if="owners.data.length === 0"
+                v-if="owners.data.length === 0 && !filters.search"
                 :icon="UserCheck"
                 title="Noch keine Eigentümer"
                 description="Legen Sie einen Eigentümer an, um ihn später Immobilien zuzuordnen."
@@ -76,6 +86,13 @@ const destroy = () => {
                     <Link :href="route('owners.create')">Eigentümer hinzufügen</Link>
                 </Button>
             </EmptyState>
+
+            <EmptyState
+                v-else-if="owners.data.length === 0"
+                :icon="Search"
+                title="Keine Treffer"
+                :description="`Keine Eigentümer gefunden für „${filters.search}“.`"
+            />
 
             <template v-else>
                 <div class="rounded-lg border">
@@ -90,7 +107,9 @@ const destroy = () => {
                         </TableHeader>
                         <TableBody>
                             <TableRow v-for="owner in owners.data" :key="owner.ulid">
-                                <TableCell class="font-medium">{{ owner.name }}</TableCell>
+                                <TableCell class="font-medium">
+                                    <Link :href="route('owners.show', [owner.ulid])" class="hover:underline">{{ owner.name }}</Link>
+                                </TableCell>
                                 <TableCell>{{ owner.email ?? '—' }}</TableCell>
                                 <TableCell>{{ owner.phone ?? '—' }}</TableCell>
                                 <TableCell>

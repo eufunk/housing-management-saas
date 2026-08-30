@@ -16,6 +16,7 @@ interface Building {
 interface UnitRecord {
     ulid: string;
     building_id: number | null;
+    type: string;
     unit_number: string;
     floor: number | null;
     size_sqm: string | null;
@@ -37,8 +38,16 @@ const statusOptions = [
     { value: 'maintenance', label: 'In Renovierung' },
 ];
 
+const typeOptions = [
+    { value: 'apartment', label: 'Wohnung' },
+    { value: 'commercial', label: 'Gewerbeeinheit' },
+    { value: 'parking_space', label: 'Stellplatz' },
+    { value: 'other', label: 'Sonstige Einheit' },
+];
+
 const form = useForm({
     building_id: props.unit.building_id ? String(props.unit.building_id) : '',
+    type: props.unit.type,
     unit_number: props.unit.unit_number,
     floor: props.unit.floor !== null ? String(props.unit.floor) : '',
     size_sqm: props.unit.size_sqm ?? '',
@@ -77,6 +86,21 @@ const submit = () => {
                         </SelectContent>
                     </Select>
                     <InputError :message="form.errors.building_id" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="type">Einheitstyp</Label>
+                    <Select v-model="form.type">
+                        <SelectTrigger id="type">
+                            <SelectValue placeholder="Typ auswählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="option in typeOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="form.errors.type" />
                 </div>
 
                 <div class="grid gap-2">

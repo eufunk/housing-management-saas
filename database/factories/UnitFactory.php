@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\UnitStatus;
+use App\Enums\UnitType;
 use App\Models\Building;
 use App\Models\Organization;
 use App\Models\Unit;
@@ -23,6 +24,7 @@ class UnitFactory extends Factory
         return [
             'organization_id' => Organization::factory(),
             'building_id' => Building::factory(),
+            'type' => UnitType::Apartment->value,
             'unit_number' => (string) fake()->unique()->numberBetween(1, 999),
             'floor' => fake()->numberBetween(0, 8),
             'size_sqm' => fake()->randomFloat(2, 25, 140),

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UnitStatus;
+use App\Enums\UnitType;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ class Unit extends Model
 
     protected $fillable = [
         'building_id',
+        'type',
         'unit_number',
         'floor',
         'size_sqm',
@@ -28,6 +30,7 @@ class Unit extends Model
     {
         return [
             'size_sqm' => 'decimal:2',
+            'type' => UnitType::class,
             'status' => UnitStatus::class,
         ];
     }

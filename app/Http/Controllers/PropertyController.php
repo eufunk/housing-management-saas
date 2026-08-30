@@ -7,6 +7,7 @@ use App\Http\Requests\UpdatePropertyRequest;
 use App\Models\Owner;
 use App\Models\Property;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,14 +18,21 @@ class PropertyController extends Controller
         $this->authorizeResource(Property::class, 'property');
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = $request->string('search')->trim()->toString();
+
         return Inertia::render('Properties/Index', [
             'properties' => Property::query()
                 ->with('owner:id,name')
+                ->when($search !== '', fn ($query) => $query->where(fn ($q) => $q
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('street', 'like', "%{$search}%")))
                 ->orderBy('name')
                 ->paginate(15)
                 ->withQueryString(),
+            'filters' => ['search' => $search !== '' ? $search : null],
         ]);
     }
 
@@ -32,6 +40,19 @@ class PropertyController extends Controller
     {
         return Inertia::render('Properties/Create', [
             'owners' => Owner::query()->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    public function show(Property $property): Response
+    {
+        $property->load([
+            'owner:id,ulid,name,email,phone',
+            'buildings' => fn ($query) => $query->orderBy('name')->withCount('units'),
+            'buildings.units' => fn ($query) => $query->orderBy('unit_number'),
+        ]);
+
+        return Inertia::render('Properties/Show', [
+            'property' => $property,
         ]);
     }
 

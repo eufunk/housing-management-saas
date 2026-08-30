@@ -23,11 +23,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    Route::resource('properties', PropertyController::class)->except('show');
+    // Registered before the properties resource so their more specific
+    // /properties/buildings and /properties/units prefixes aren't shadowed
+    // by properties/{property} (the show route matches any single segment,
+    // including the literal "buildings"/"units", if it's registered first).
     Route::resource('properties/buildings', BuildingController::class)->except('show')->names('buildings');
     Route::resource('properties/units', UnitController::class)->except('show')->names('units');
-    Route::resource('tenants', TenantController::class)->except('show');
-    Route::resource('owners', OwnerController::class)->except('show');
+    Route::resource('properties', PropertyController::class);
+    Route::resource('tenants', TenantController::class);
+    Route::resource('owners', OwnerController::class);
     Route::resource('contractors', ContractorController::class)->except('show');
 
     // Placeholder landing pages for the remaining sidebar modules. These

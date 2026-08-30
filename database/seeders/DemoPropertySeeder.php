@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\UnitStatus;
+use App\Enums\UnitType;
 use App\Models\Building;
 use App\Models\Organization;
 use App\Models\Owner;
@@ -116,7 +117,7 @@ class DemoPropertySeeder extends Seeder
                 ['unit_number' => '102', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 82.0, 'status' => UnitStatus::Occupied],
             ],
             'Haus 1' => [
-                ['unit_number' => '1', 'floor' => 0, 'rooms' => 2, 'size_sqm' => 48.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '1', 'floor' => 0, 'rooms' => 2, 'size_sqm' => 48.0, 'status' => UnitStatus::Occupied, 'type' => UnitType::Commercial],
                 ['unit_number' => '2', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 65.0, 'status' => UnitStatus::Occupied],
                 ['unit_number' => '3', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 50.0, 'status' => UnitStatus::Maintenance],
                 ['unit_number' => '4', 'floor' => 2, 'rooms' => 4, 'size_sqm' => 90.0, 'status' => UnitStatus::Vacant],
@@ -131,7 +132,7 @@ class DemoPropertySeeder extends Seeder
                 ['unit_number' => '102', 'floor' => 1, 'rooms' => 1, 'size_sqm' => 35.0, 'status' => UnitStatus::Vacant],
             ],
             'Haupthaus' => [
-                ['unit_number' => '1', 'floor' => 0, 'rooms' => 4, 'size_sqm' => 95.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '1', 'floor' => 0, 'rooms' => 4, 'size_sqm' => 95.0, 'status' => UnitStatus::Occupied, 'type' => UnitType::Commercial],
                 ['unit_number' => '2', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 52.0, 'status' => UnitStatus::Vacant],
                 ['unit_number' => '3', 'floor' => 1, 'rooms' => 3, 'size_sqm' => 68.0, 'status' => UnitStatus::Maintenance],
             ],
@@ -141,11 +142,11 @@ class DemoPropertySeeder extends Seeder
                 ['unit_number' => '201', 'floor' => 2, 'rooms' => 3, 'size_sqm' => 74.0, 'status' => UnitStatus::Vacant],
             ],
             'Vorderhaus' => [
-                ['unit_number' => '1', 'floor' => 1, 'rooms' => 4, 'size_sqm' => 110.0, 'status' => UnitStatus::Occupied],
+                ['unit_number' => '1', 'floor' => 1, 'rooms' => 4, 'size_sqm' => 110.0, 'status' => UnitStatus::Occupied, 'type' => UnitType::Commercial],
                 ['unit_number' => '2', 'floor' => 2, 'rooms' => 3, 'size_sqm' => 85.0, 'status' => UnitStatus::Vacant],
             ],
             'Hinterhaus' => [
-                ['unit_number' => '1', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 45.0, 'status' => UnitStatus::Maintenance],
+                ['unit_number' => '1', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 45.0, 'status' => UnitStatus::Maintenance, 'type' => UnitType::Other],
                 ['unit_number' => '2', 'floor' => 1, 'rooms' => 2, 'size_sqm' => 46.0, 'status' => UnitStatus::Occupied],
             ],
         ];
@@ -163,6 +164,7 @@ class DemoPropertySeeder extends Seeder
                     Unit::firstOrCreate(
                         ['organization_id' => $organization->id, 'building_id' => $building->id, 'unit_number' => $unitData['unit_number']],
                         [
+                            'type' => ($unitData['type'] ?? UnitType::Apartment)->value,
                             'floor' => $unitData['floor'],
                             'rooms' => $unitData['rooms'],
                             'size_sqm' => $unitData['size_sqm'],

@@ -4,12 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useListSearch } from '@/composables/useListSearch';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { DoorOpen, Pencil, Plus, Trash2 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { DoorOpen, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 
 interface Building {
     id: number;
@@ -17,9 +20,11 @@ interface Building {
 }
 
 type UnitStatus = 'vacant' | 'occupied' | 'maintenance';
+type UnitType = 'apartment' | 'commercial' | 'parking_space' | 'other';
 
 interface UnitRecord {
     ulid: string;
+    type: UnitType;
     unit_number: string;
     floor: number | null;
     size_sqm: string | null;
@@ -34,11 +39,12 @@ interface PaginationLink {
     active: boolean;
 }
 
-defineProps<{
+const props = defineProps<{
     units: {
         data: UnitRecord[];
         links: PaginationLink[];
     };
+    filters: { search: string | null; status: string | null };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -57,6 +63,28 @@ const statusVariants: Record<UnitStatus, 'secondary' | 'success' | 'outline'> = 
     occupied: 'success',
     maintenance: 'secondary',
 };
+
+const typeLabels: Record<UnitType, string> = {
+    apartment: 'Wohnung',
+    commercial: 'Gewerbeeinheit',
+    parking_space: 'Stellplatz',
+    other: 'Sonstige Einheit',
+};
+
+const statusFilterOptions = [
+    { value: 'all', label: 'Alle Status' },
+    { value: 'vacant', label: 'Leerstand' },
+    { value: 'occupied', label: 'Vermietet' },
+    { value: 'maintenance', label: 'In Renovierung' },
+];
+
+const statusFilter = ref(props.filters.status ?? 'all');
+
+const { search, navigate } = useListSearch('units.index', props.filters.search, () => ({
+    status: statusFilter.value !== 'all' ? statusFilter.value : null,
+}));
+
+watch(statusFilter, () => navigate());
 
 const unitPendingDeletion = ref<UnitRecord | null>(null);
 
@@ -92,8 +120,25 @@ const destroy = () => {
                 </Button>
             </div>
 
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="relative max-w-sm flex-1">
+                    <Search class="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input v-model="search" placeholder="Suche nach Nr., Gebäude…" class="pl-8" />
+                </div>
+                <Select v-model="statusFilter">
+                    <SelectTrigger class="w-44">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem v-for="option in statusFilterOptions" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
             <EmptyState
-                v-if="units.data.length === 0"
+                v-if="units.data.length === 0 && !filters.search && !filters.status"
                 :icon="DoorOpen"
                 title="Noch keine Wohnungen"
                 description="Legen Sie eine Wohnung an und ordnen Sie sie einem Gebäude zu."
@@ -103,12 +148,15 @@ const destroy = () => {
                 </Button>
             </EmptyState>
 
+            <EmptyState v-else-if="units.data.length === 0" :icon="Search" title="Keine Treffer" description="Keine Wohnungen für diese Filter." />
+
             <template v-else>
                 <div class="rounded-lg border">
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Nr.</TableHead>
+                                <TableHead>Typ</TableHead>
                                 <TableHead>Gebäude</TableHead>
                                 <TableHead>Etage</TableHead>
                                 <TableHead>Größe</TableHead>
@@ -120,6 +168,7 @@ const destroy = () => {
                         <TableBody>
                             <TableRow v-for="unit in units.data" :key="unit.ulid">
                                 <TableCell class="font-medium">{{ unit.unit_number }}</TableCell>
+                                <TableCell>{{ typeLabels[unit.type] }}</TableCell>
                                 <TableCell>{{ unit.building?.name ?? '—' }}</TableCell>
                                 <TableCell>{{ unit.floor ?? '—' }}</TableCell>
                                 <TableCell>{{ unit.size_sqm ? `${unit.size_sqm} m²` : '—' }}</TableCell>

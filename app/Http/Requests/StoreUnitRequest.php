@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\UnitStatus;
+use App\Enums\UnitType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,6 +23,7 @@ class StoreUnitRequest extends FormRequest
                 'required',
                 Rule::exists('buildings', 'id')->where('organization_id', $this->user()->current_organization_id),
             ],
+            'type' => ['required', new Enum(UnitType::class)],
             'unit_number' => [
                 'required',
                 'string',

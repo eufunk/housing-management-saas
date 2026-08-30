@@ -27,8 +27,16 @@ const statusOptions = [
     { value: 'maintenance', label: 'In Renovierung' },
 ];
 
+const typeOptions = [
+    { value: 'apartment', label: 'Wohnung' },
+    { value: 'commercial', label: 'Gewerbeeinheit' },
+    { value: 'parking_space', label: 'Stellplatz' },
+    { value: 'other', label: 'Sonstige Einheit' },
+];
+
 const form = useForm({
     building_id: '' as string,
+    type: 'apartment',
     unit_number: '',
     floor: '' as string,
     size_sqm: '' as string,
@@ -67,6 +75,21 @@ const submit = () => {
                         </SelectContent>
                     </Select>
                     <InputError :message="form.errors.building_id" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="type">Einheitstyp</Label>
+                    <Select v-model="form.type">
+                        <SelectTrigger id="type">
+                            <SelectValue placeholder="Typ auswählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="option in typeOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <InputError :message="form.errors.type" />
                 </div>
 
                 <div class="grid gap-2">

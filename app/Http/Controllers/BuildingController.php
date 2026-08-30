@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateBuildingRequest;
 use App\Models\Building;
 use App\Models\Property;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,14 +18,20 @@ class BuildingController extends Controller
         $this->authorizeResource(Building::class, 'building');
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = $request->string('search')->trim()->toString();
+
         return Inertia::render('Buildings/Index', [
             'buildings' => Building::query()
                 ->with('property:id,name')
+                ->when($search !== '', fn ($query) => $query->where(fn ($q) => $q
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('property', fn ($p) => $p->where('name', 'like', "%{$search}%"))))
                 ->orderBy('name')
                 ->paginate(15)
                 ->withQueryString(),
+            'filters' => ['search' => $search !== '' ? $search : null],
         ]);
     }
 

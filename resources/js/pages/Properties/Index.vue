@@ -3,11 +3,13 @@ import Pagination from '@/components/Pagination.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useListSearch } from '@/composables/useListSearch';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Building2, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Building2, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 interface Owner {
@@ -31,14 +33,17 @@ interface PaginationLink {
     active: boolean;
 }
 
-defineProps<{
+const props = defineProps<{
     properties: {
         data: Property[];
         links: PaginationLink[];
     };
+    filters: { search: string | null };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Immobilien', href: '/properties' }];
+
+const { search } = useListSearch('properties.index', props.filters.search);
 
 const propertyPendingDeletion = ref<Property | null>(null);
 
@@ -74,8 +79,13 @@ const destroy = () => {
                 </Button>
             </div>
 
+            <div class="relative max-w-sm">
+                <Search class="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input v-model="search" placeholder="Suche nach Name, Stadt, Straße…" class="pl-8" />
+            </div>
+
             <EmptyState
-                v-if="properties.data.length === 0"
+                v-if="properties.data.length === 0 && !filters.search"
                 :icon="Building2"
                 title="Noch keine Immobilien"
                 description="Legen Sie Ihre erste Immobilie an, um mit der Verwaltung zu beginnen."
@@ -84,6 +94,13 @@ const destroy = () => {
                     <Link :href="route('properties.create')">Immobilie hinzufügen</Link>
                 </Button>
             </EmptyState>
+
+            <EmptyState
+                v-else-if="properties.data.length === 0"
+                :icon="Search"
+                title="Keine Treffer"
+                :description="`Keine Immobilien gefunden für „${filters.search}“.`"
+            />
 
             <template v-else>
                 <div class="rounded-lg border">
@@ -98,7 +115,9 @@ const destroy = () => {
                         </TableHeader>
                         <TableBody>
                             <TableRow v-for="property in properties.data" :key="property.ulid">
-                                <TableCell class="font-medium">{{ property.name }}</TableCell>
+                                <TableCell class="font-medium">
+                                    <Link :href="route('properties.show', [property.ulid])" class="hover:underline">{{ property.name }}</Link>
+                                </TableCell>
                                 <TableCell>{{ property.street }}, {{ property.postal_code }} {{ property.city }}</TableCell>
                                 <TableCell>{{ property.owner?.name ?? '—' }}</TableCell>
                                 <TableCell>

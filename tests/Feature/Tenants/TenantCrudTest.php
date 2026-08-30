@@ -104,6 +104,51 @@ test('an owner cannot create, update or delete tenants', function () {
         ->assertForbidden();
 });
 
+test('a property manager can view a tenant detail page', function () {
+    $organization = Organization::factory()->create();
+    $manager = memberOf($organization, OrganizationRole::PropertyManager);
+    $tenant = Tenant::factory()->for($organization)->create();
+
+    $this->actingAs($manager)
+        ->get(route('tenants.show', $tenant))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Tenants/Show')
+            ->where('tenant.name', $tenant->name)
+        );
+});
+
+test('a property manager from another organization gets a 404 for a tenant detail page', function () {
+    $organizationA = Organization::factory()->create();
+    $organizationB = Organization::factory()->create();
+
+    $managerB = memberOf($organizationB, OrganizationRole::PropertyManager);
+    $tenantA = Tenant::factory()->for($organizationA)->create();
+
+    $this->actingAs($managerB)
+        ->get(route('tenants.show', $tenantA))
+        ->assertNotFound();
+});
+
+test('the tenants list can be searched by name and email', function () {
+    $organization = Organization::factory()->create();
+    $manager = memberOf($organization, OrganizationRole::PropertyManager);
+
+    $match = Tenant::factory()->for($organization)->create(['name' => 'Julia Sommerfeld', 'email' => 'julia@example.test']);
+    $noMatch = Tenant::factory()->for($organization)->create(['name' => 'Thomas Reinhardt', 'email' => 'thomas@example.test']);
+
+    $this->actingAs($manager)
+        ->get(route('tenants.index', ['search' => 'Sommerfeld']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Tenants/Index')
+            ->has('tenants.data', 1)
+            ->where('tenants.data.0.name', $match->name)
+        );
+
+    expect($noMatch->name)->not->toContain('Sommerfeld');
+});
+
 test('a property manager cannot update a tenant belonging to another organization', function () {
     $organizationA = Organization::factory()->create();
     $organizationB = Organization::factory()->create();

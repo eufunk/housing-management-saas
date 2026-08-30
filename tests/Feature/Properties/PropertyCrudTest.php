@@ -1,9 +1,11 @@
 <?php
 
 use App\Enums\OrganizationRole;
+use App\Models\Building;
 use App\Models\Organization;
 use App\Models\Owner;
 use App\Models\Property;
+use App\Models\Unit;
 
 test('a property manager can view the properties list scoped to their organization', function () {
     $organization = Organization::factory()->create();
@@ -123,6 +125,60 @@ test('a tenant cannot create, update or delete properties', function () {
     $this->actingAs($tenant)
         ->delete(route('properties.destroy', $property))
         ->assertForbidden();
+});
+
+test('a property manager can view a property detail page with its buildings and units', function () {
+    $organization = Organization::factory()->create();
+    $manager = memberOf($organization, OrganizationRole::PropertyManager);
+    $property = Property::factory()->for($organization)->create();
+    $building = Building::factory()->for($organization)->for($property)->create();
+    $unit = Unit::factory()->for($organization)->for($building)->create();
+
+    $this->actingAs($manager)
+        ->get(route('properties.show', $property))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Properties/Show')
+            ->where('property.name', $property->name)
+            ->has('property.buildings', 1)
+            ->where('property.buildings.0.name', $building->name)
+            ->has('property.buildings.0.units', 1)
+            ->where('property.buildings.0.units.0.unit_number', $unit->unit_number)
+        );
+});
+
+test('a property manager from another organization gets a 404 for a property detail page', function () {
+    $organizationA = Organization::factory()->create();
+    $organizationB = Organization::factory()->create();
+
+    $managerB = memberOf($organizationB, OrganizationRole::PropertyManager);
+    $propertyA = Property::factory()->for($organizationA)->create();
+
+    $this->actingAs($managerB)
+        ->get(route('properties.show', $propertyA))
+        ->assertNotFound();
+});
+
+test('the properties list can be searched by name and city', function () {
+    $organization = Organization::factory()->create();
+    $manager = memberOf($organization, OrganizationRole::PropertyManager);
+
+    $match = Property::factory()->for($organization)->create(['name' => 'Wohnanlage Sonnenhof', 'city' => 'Berlin']);
+    $alsoMatch = Property::factory()->for($organization)->create(['name' => 'Anderes Haus', 'city' => 'Sonnenhofstadt']);
+    $noMatch = Property::factory()->for($organization)->create(['name' => 'Villa Nord', 'city' => 'Hamburg']);
+
+    $this->actingAs($manager)
+        ->get(route('properties.index', ['search' => 'Sonnenhof']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Properties/Index')
+            ->has('properties.data', 2)
+            ->where('filters.search', 'Sonnenhof')
+        );
+
+    expect($noMatch->name)->not->toContain('Sonnenhof');
+    expect($match->name)->toContain('Sonnenhof');
+    expect($alsoMatch->city)->toContain('Sonnenhof');
 });
 
 test('a property manager cannot update a property belonging to another organization', function () {
